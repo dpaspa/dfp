@@ -1,13 +1,13 @@
-[![Build Status](https://img.shields.io/travis/webuildsg/osx/master.svg)](https://travis-ci.org/webuildsg/osx)
-#webuild sg menubar
+[![Build Status](x.svg)](http://ipoogi.com)
+#desktop focal point
 
-> a tiny OS X menubar app to display the upcoming events and recently updated repos from webuild.sg
+> a desktop client which becomes the focal point of the ipoogi QMS
 
-![](example.png)
+![](x.png)
 
 ## getting started
 
-1. download [the latest app](https://github.com/webuildsg/osx/releases) and move it to your `Applications` folder.
+1. download [the latest app](https://github.com/dpaspa/dfp) and move it to your `development` folder.
 - double-click to open the menubar app
 
 ## install
@@ -22,7 +22,7 @@
   ```sh
   npm start
   ```
-- build the app to create `WeBuildSG.app.zip`
+- build the app to create `____.app.zip`
 
   ```sh
   npm run build
