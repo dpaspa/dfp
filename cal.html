@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ipoogi calendar</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="cal-container" id="cal-content">
+        <webview class="web-container" id="web-content" src="https://www.google.com/calendar/embed?src=david.paspa%40gmail.com&ctz=Asia/Calcutta">
+        </webview>
+    </div>
+
+    <script type="text/javascript">console.log('calendar');</script>
+</body>
+<!--
+    <script type="text/javascript" defer="defer">
+sleep(1000);
+alert(window.innerHeight);
+alert(document.getElementById("cal-content").style.height);
+        document.getElementByClassName("cal-container")[0].style.height = window.innerHeight;
+        document.getElementById("cal-content").style.width = window.innerWidth;
+        document.getElementById("web-content").style.height = window.innerHeight;
+        document.getElementById("web-content").style.width = window.innerWidth;
+
+function sleep(milliseconds) {
+    var start = new Date().getTime();
+    for (var i = 0; i < 1e7; i++) {
+        if ((new Date().getTime() - start) > milliseconds){
+            break;
+        }
+    }
+}
+    </script>
+-->
+</html>
