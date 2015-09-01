@@ -6,15 +6,17 @@ var shell = require('shell');
 var CronJob = require('cron').CronJob;
 var moment = require('moment-timezone');
 var dynamics = require('dynamics.js');
+var fs = require('fs');
+var xml2js = require('xml2js');
 
-function renderFeedback() {
+/* function renderFeedback() {
   var templateSource = document.getElementById('template-feedback').innerHTML;
   var template = Handlebars.compile(templateSource);
   var resultsPlaceholder = document.getElementById('result-feedback');
   resultsPlaceholder.innerHTML = template({
     feedback: config.feedback
   });
-}
+} */
 
 function renderTemplate(type, data) {
   var templateSource = document.getElementById('template-' + type).innerHTML;
@@ -72,7 +74,7 @@ function callAPI(type, num, willNotify){
         }
 
         data.website = config.website;
-        data.feedback = config.feedback;
+//        data.feedback = config.feedback;
         renderTemplate(type, data);
     };
 /*  xhr.open('GET', config.apiUrl + type, true); */
@@ -99,25 +101,48 @@ document.getElementById('dyno').addEventListener('click', function() {
 })
 
 document.getElementById('dyno').addEventListener('drop', function(e) {
-  document.getElementById('dyno').style.backgroundImage = 'url(./images/spiral-run-send.gif)';
+    document.getElementById('dyno').style.backgroundImage = 'url(./images/spiral-run-send.gif)';
 
-  var dt = e.dataTransfer;
-  var files = dt.files;
+    var dt = e.dataTransfer;
+    var files = dt.files;
 
-  var count = files.length;
+    var count = files.length;
 
-  e.preventDefault();
-  e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation();
 
 
 //  alert('landed on ' + e.target);
 
 //  alert("File Count: " + count + "\n");
 
-//    for (var i = 0; i < files.length; i++) {
-//      alert("File " + i + ":\n(" + (typeof files[i]) + ") : <" + files[i] + " > " +
-//             files[i].name + " " + files[i].size + "\n");
-//    }
+    for (var i = 0; i < files.length; i++) {
+        console.log("File " + i + ": (" + (typeof files[i]) + ") : <" + files[i] + " > " +
+              files[i].name + " " + files[i].size + "\n");
+        // Assuming xmlDoc is the XML DOM Document
+        // var jsonText = JSON.stringify(xmlToJson(xmlDoc));
+//        var jsonText = JSON.parse(xmlToJson(contents));
+//        var contents = fs.readFileSync files[i].name
+//        var data = fs.readFileSync(files[i].name, 'utf-8');
+//        var jsonText = toJson.xmlToJson(data);
+//        alert(jsonText);
+        if (files[i].name.substr(files[i].name.lastIndexOf('.')+1) == 'json') {
+            var parser = new xml2js.Parser();
+            fs.readFile(files[i].name, function(err, data) {
+                parser.parseString(data, function (err, result) {
+                    alert(JSON.stringify(result));
+                });
+            });
+
+        } else if (files[i].name.substr(files[i].name.lastIndexOf('.')+1) == 'xls') {
+            console.log('here');
+            document.getElementById('dyno').style.backgroundImage = 'url(./images/factory.gif)';
+            ipc.send('event', 'excel');
+
+        } else {
+            ipc.send('event', 'word');
+        }
+    }
 });
 
 document.addEventListener('dragover', function(e) {
@@ -137,11 +162,35 @@ document.getElementById('cal-label').addEventListener('click', function() {
 //  document.getElementById('list-label').style.backgroundColor = '#1f2023';
 //  document.getElementById('task-label').style.backgroundColor = '#1f2023';
 
-  document.getElementById('dyno').style.display = 'block';
-  document.getElementById('cal-content').style.display = 'block';
-  document.getElementById('prefs-content').style.display = 'none';
-  document.getElementById('list-content').style.display = 'none';
-  document.getElementById('task-content').style.display = 'none';
+//  document.getElementById('dyno').style.display = 'block';
+//  document.getElementById('cal-content').style.display = 'block';
+//  document.getElementById('prefs-content').style.display = 'none';
+//  document.getElementById('list-content').style.display = 'none';
+//  document.getElementById('task-content').style.display = 'none';
+  ipc.send('event', 'cal');
+})
+
+document.getElementById('discuss-label').addEventListener('click', function() {
+  document.getElementById('discuss').style.display = 'block';
+  document.getElementById('dyno').style.display = 'none';
+})
+
+document.getElementById('search-key').addEventListener('keydown', function(e) {
+    if (e.keyCode === 13) {
+        var searchText = document.getElementById('search-key').value;
+//        ipc.send('event', 'chunk');
+        var remote = require('remote');
+        var BrowserWindow = remote.require('browser-window');
+        var chunkWindow = new BrowserWindow({ 
+            "skip-taskbar": true,
+            frame: false,
+            transparent: true,
+            width: 800, 
+            height: 600 
+        });
+        chunkWindow.setPosition(200, 100);
+        chunkWindow.loadUrl('file://' + __dirname + '/chunk.html?search=' + searchText);
+    }
 })
 
 document.getElementById('prefs-label').addEventListener('click', function() {
@@ -150,9 +199,24 @@ document.getElementById('prefs-label').addEventListener('click', function() {
 //  document.getElementById('list-label').style.backgroundColor = '#1f2023';
 //  document.getElementById('task-label').style.backgroundColor = '#1f2023';
 
+  document.getElementById('discuss').style.display = 'none';
   document.getElementById('dyno').style.display = 'none';
-  document.getElementById('cal-content').style.display = 'none';
+  document.getElementById('searcher').style.display = 'none';
+//  document.getElementById('cal-content').style.display = 'none';
   document.getElementById('prefs-content').style.display = 'block';
+  document.getElementById('prefs-instr').style.display = 'block';
+  document.getElementById('improve-content').style.display = 'none';
+  document.getElementById('list-content').style.display = 'none';
+  document.getElementById('task-content').style.display = 'none';
+})
+
+document.getElementById('improve-label').addEventListener('click', function() {
+  document.getElementById('discuss').style.display = 'none';
+  document.getElementById('dyno').style.display = 'block';
+  document.getElementById('searcher').style.display = 'block';
+  document.getElementById('prefs-content').style.display = 'none';
+  document.getElementById('prefs-instr').style.display = 'none';
+  document.getElementById('improve-content').style.display = 'block';
   document.getElementById('list-content').style.display = 'none';
   document.getElementById('task-content').style.display = 'none';
 })
@@ -163,9 +227,13 @@ document.getElementById('list-label').addEventListener('click', function() {
 //  document.getElementById('list-label').style.backgroundColor = '#707070';
 //  document.getElementById('task-label').style.backgroundColor = '#1f2023';
 
+  document.getElementById('discuss').style.display = 'none';
   document.getElementById('dyno').style.display = 'block';
-  document.getElementById('cal-content').style.display = 'none';
+  document.getElementById('searcher').style.display = 'block';
+//  document.getElementById('cal-content').style.display = 'none';
   document.getElementById('prefs-content').style.display = 'none';
+  document.getElementById('prefs-instr').style.display = 'none';
+  document.getElementById('improve-content').style.display = 'none';
   document.getElementById('list-content').style.display = 'block';
   document.getElementById('task-content').style.display = 'none';
 })
@@ -176,16 +244,18 @@ document.getElementById('task-label').addEventListener('click', function() {
 //  document.getElementById('list-label').style.backgroundColor = '#1f2023';
 //  document.getElementById('task-label').style.backgroundColor = '#707070';
 
+  document.getElementById('discuss').style.display = 'none';
   document.getElementById('dyno').style.display = 'block';
-  document.getElementById('cal-content').style.display = 'none';
+  document.getElementById('searcher').style.display = 'block';
+//  document.getElementById('cal-content').style.display = 'none';
   document.getElementById('prefs-content').style.display = 'none';
+  document.getElementById('prefs-instr').style.display = 'none';
+  document.getElementById('improve-content').style.display = 'none';
   document.getElementById('list-content').style.display = 'none';
   document.getElementById('task-content').style.display = 'block';
 })
 
 document.getElementById('user-label').addEventListener('click', function() {
-//  ipc.sendSync('event', 'user');
-//  ipc.sendSync('event', 'dyno');
     var el = document.getElementById("user-label")
     dynamics.animate(el, {
         translateX: -250,
@@ -198,11 +268,11 @@ document.getElementById('user-label').addEventListener('click', function() {
         duration: 1500
     })
 
-    ipc.sendSync('event', 'user');
+//    ipc.send('event', 'user');
 })
 
 document.getElementById('dash-label').addEventListener('click', function() {
-  ipc.sendSync('event', 'dash');
+  ipc.send('event', 'dash');
 //  if (document.getElementById("dash-content").style.width === '600px') 
 //     {
 //      document.getElementById("dash-content").style.width = '0';
@@ -217,12 +287,12 @@ document.getElementById('dash-label').addEventListener('click', function() {
 //  document.getElementById("dash-content").style.display = 'block') 
 
 
-//  ipc.sendSync('event', 'dash');
+//  ipc.send('event', 'dash');
 //  shell.openExternal('http://dashingdemo.herokuapp.com/sample');
 })
 
 document.getElementById('quit').addEventListener('click', function() {
-  ipc.sendSync('event', 'quit');
+  ipc.send('event', 'quit');
 })
 
 new CronJob('0 0,30 * * * *', function() {
@@ -230,10 +300,11 @@ new CronJob('0 0,30 * * * *', function() {
   callAPI('lists', 3, true);
 }, null, true, config.timezone);
 
-renderFeedback();
+// renderFeedback();
 callAPI('phembots', 6, false);
 callAPI('lists', 3, false);
 
+/*
 function DrawSpiral(mod) {
     var c = document.getElementById("myCanvas");
     var cxt = c.getContext("2d");
@@ -265,3 +336,4 @@ var counter = 10;
         DrawSpiral(counter);
         counter += 0.275;
     }, 10);
+*/

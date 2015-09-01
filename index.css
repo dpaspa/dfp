@@ -4,6 +4,7 @@ body {
   padding: 0;
   min-width: 350px;
   font: menu;
+  background-color: #1f2023;
   user-select: none;
   -webkit-user-select: none;
   cursor: default;
@@ -24,10 +25,10 @@ h1 img{
 
 h2 {
   font-size: 1.1em;
-  font-weight: bold;
-  padding: 5px 10px;
+  font-weight: normal;
+  padding: 5px 5px;
   margin: 0;
-  color: #666;
+  color: #888;
 }
 
 p {
@@ -52,20 +53,30 @@ a:hover, a:active {
 /*  border: 3px solid #2c8992;  */
 }
 
+.cal-container, .web-container {
+  display: block;
+  background-color: #1f2023;
+  height: 570px;
+  width: auto;
+}
+
 .dash-container {
   background-color: #1f2023;
+  height: auto;
+  width: auto;
+  border: 3px solid #2c8992;
 /*  position: fixed;
   bottom: 0;
   left: 0;
   width: auto; */
 }
-
+/*
 #dash-content {
-/*  display: none; */
+  display: none;
   height: 0;
   width: 0;
 }
-
+*/
 .content-main {
 /*  border: 3px solid #2c8992; */
   position: absolute;
@@ -81,12 +92,22 @@ a:hover, a:active {
   height: 240px;
   width: 350px;
   padding: 5px 5px 5px 5px;
+  border-radius: 2px 2px 2px 2px;
 }
 
-.dynamic-portal {
+#dyno {
   background: url('./images/spiral-static.png') no-repeat 0 0, center;
   height: 240px;
   width: 340px;
+  border-radius: 2px 2px 2px 2px;
+}
+
+#discuss {
+  display: none;
+  background-color: #404040;
+  height: 240px;
+  width: 340px;
+  border-radius: 2px 2px 2px 2px;
 }
 
 .menu-top {
@@ -130,6 +151,7 @@ a:hover, a:active {
   display: inline-block;
   text-align: center;
   padding: 5px 5px;
+  border-radius: 2px 2px 2px 2px;
 /*  border: 2px solid #89ff72; */
 }
 
@@ -140,6 +162,16 @@ a:hover, a:active {
 
 .menu-item:active, .menu-item:visited {
   background-color: #707070;
+}
+
+.menu-option:hover {
+  color: yellow;
+  background: #ff0000;
+}
+
+.menu-option:checked {
+  color: white;
+  background: #00ff00;
 }
 
 .div.menu-item::-moz-selected { /* Code for Firefox */
@@ -162,22 +194,37 @@ a:hover, a:active {
   vertical-align: middle;
   height: 40px;
   margin: 5px 5px 5px 5px;
-  border-radius: 5px 5px 0 0;
+  border-radius: 5px 5px 5px 5px;
 }
 
 .search-entry {
   position: relative;
   left: 30px;
   top: 8px;
-  width: 350px;
+  width: 300px;
   background-color: #828282;
   color: #1f2023;
   border:0px solid #828282;
   font-size: 1.2em;
 }
 
+.search-container, .chunk-container {
+  background-color: #1f2023;
+  color: #828282;
+}
+
 #prefs-label {
 /*  background: url('./images/prefs.png') no-repeat 2px 2px; */
+}
+
+.prefs-instruction {
+  display: none;
+  margin: 5px 5px 5px 5px;
+  padding: 10px 0 0 0;
+  color: #888888;
+}
+
+#improve-label {
 }
 
 #task-label {
@@ -188,6 +235,10 @@ a:hover, a:active {
 /*  background: url('./images/user.png') no-repeat 2px 2px; */
 }
 
+#improve-content {
+  display: none;
+}
+
 #task-content {
 }
 
@@ -195,15 +246,42 @@ a:hover, a:active {
   display: none;
 }
 
+/*
 #cal-content {
   display: none;
   height: 350px;
   width: 340px;
   margin: 5px 5px 5px 5px;
 }
-
+*/
 #prefs-content {
   display: none;
+}
+
+.ofi {
+  margin: 5px 5px 5px 5px;
+  padding: 5px 5px 5px 5px;
+  border-radius: 2px 2px 2px 2px;
+  background-color: #4f6237;
+  height: 100px;
+  width: auto;
+}
+
+.ofi h2 {
+  padding: 5px 0;
+}
+
+.cc {
+  margin: 5px 5px 5px 5px;
+  padding: 5px 5px 5px 5px;
+  border-radius: 2px 2px 2px 2px;
+  background-color: #654373;
+  height: 100px;
+  width: auto;
+}
+
+.cc h2 {
+  padding: 5px 0;
 }
 
 .info {
@@ -227,6 +305,7 @@ a:hover, a:active {
 .list li {
   padding: 6px;
   margin: 5px 5px 5px 5px;
+  border-radius: 2px 2px 2px 2px;
 }
 
 .list li:nth-child(4n+1) {
@@ -318,3 +397,12 @@ a:hover, a:active {
   height: 25px;
   margin: 1em auto;
 }
+
+.st-bg { background:black; }
+.st-bg-today { background:yellow; border-left:1px solid yellow; border-right:1px solid yellow; }
+.st-dtitle { background:white; }
+.view-cap, .view-container-border { background-color:black; }
+.mv-daynames-table { color:white; background:black; }
+.mv-event-container { border-top:1px solid black; }
+.st-bg { border-left:none; }
+.st-dtitle { border:none; background:white; }

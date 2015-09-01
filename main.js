@@ -1,5 +1,6 @@
 'use strict';
 
+var config = require('./config');
 var menubar = require('menubar');
 var app = require('app'); // Module to control application life
 // var async = require('async');
@@ -21,6 +22,7 @@ var atomScreen = null;
 var dashWindow = null;
 var calWindow = null;
 var detailWindow = null;
+var chunkWindow = null;
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function() {
@@ -75,16 +77,20 @@ app.on('ready', function() {
         '1Runtywm59xTHd5z8EWznmzd'
     );
 
+    var mainOnTop = setInterval(function(){
+        mainWindow.setAlwaysOnTop(true);
+    }, 1);
+
     // Emitted when the window is closed.
     mainWindow.on('closed', function() {
+        clearInterval(mainOnTop);
+
         // Dereference the window object, usually you would store windows
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
         mainWindow = null;
     });
 });
-
-
 
 
 
@@ -102,22 +108,46 @@ mb.on('ready', function ready () {
         var num, sX, sY, fWidth, fHeight, fX, fY;
 
         if (arg === 'quit') {
-        app.quit();
+            app.quit();
         }
 
-        if (arg === 'dyno') {
+        if (arg === 'excel') {
+	        console.log(config.pathWinword + '\ /q\ /x\ /l' + config.pathWinEffector + '\ ' + config.pathWinPhembots + 'anyxl.json');
+	        var version = shell.exec(config.pathWinword + '\ /q\ /x\ /l' + config.pathWinEffector + '\ ' + config.pathWinPhembots + 'anyxl.json', {async:true}).output;
+//	        var version = shell.exec('"C:\\Program\ Files\\Microsoft\ Office\\Office14\\winword"\ /q\ /x\ /lx:\\Business\\ipoogi\\pb.dotm\ x:\\Business\\ipoogi\\anyxl.json', {async:true}).output;
+        }
+
+        if (arg === 'word') {
 	        var version = shell.exec('"C:\\Program\ Files\\Microsoft\ Office\\Office14\\winword"\ /q\ /x\ /lx:\\Business\\ipoogi\\pb.dotm\ x:\\Business\\ipoogi\\anybot.json', {async:true}).output;
         }
 
-        if (arg === 'user') {
-//	        shell.echo('user');
+        if (arg === 'cal') {
+            if (calWindow == null) {
+                var size = atomScreen.getPrimaryDisplay().workAreaSize;
 
-//            var size = atomScreen.getPrimaryDisplay().workAreaSize;
-            calWindow = new BrowserWindow({
-                transparent: true,
-                frame: false
-            });
-//            calWindow.setBounds({width: 200, height: 200, x: size.width / 2 - 100, y: size.height / 2 - 100});
+                fWidth = size.width-350-70;
+                fHeight = size.height-200;
+                fX = 70;
+                fY = 100;
+
+            //  Create the calendar window.
+                calWindow = new BrowserWindow({
+                    title: 'Desktop Focal Point Calendar', 
+                    width: fWidth,
+                    height: fHeight,
+                    "skip-taskbar": true,
+                    frame: false,
+                    transparent: true
+                });
+
+                calWindow.setPosition(fX, fY);
+//                calWindow.loadUrl('https://www.google.com/calendar/embed?src=david.paspa%40gmail.com&ctz=Asia/Calcutta');
+                calWindow.loadUrl('file://' + __dirname + '/cal.html');
+
+            } else {
+                calWindow.close();
+                calWindow = null;
+            }
         }
 
         if (arg === 'dash') {
@@ -125,13 +155,24 @@ mb.on('ready', function ready () {
 //              mainWindow.setBounds({width: size.width, height: size.height, x: 0, y:0});
 //              shell.openExternal(el.href);
 
+//                var remote = require('remote');
                 var size = atomScreen.getPrimaryDisplay().workAreaSize;
+
+                num = 150;
+                sX = size.width-350;
+                sY = size.height;
+                fWidth = size.width-350-70;
+                fHeight = size.height-200;
+                fX = 70;
+                fY = 100;
 
             //  Create the dashboard window.
                 dashWindow = new BrowserWindow({
                     title: 'Desktop Focal Point Dashboard', 
-                    width: 0, 
-                    height: 0, 
+//                    width: 0, 
+//                    height: 0, 
+                    width: fWidth,
+                    height: fHeight,
                     "skip-taskbar": true,
                     frame: false,
                     kiosk: true,
@@ -143,25 +184,23 @@ mb.on('ready', function ready () {
                     } */
                 });
 
-                dashWindow.loadUrl('http://dashingdemo.herokuapp.com/sample');
+//                dashWindow.loadUrl('http://dashingdemo.herokuapp.com/sample');
+//                animateWindow(dashWindow, num, sX, sY, fWidth, fHeight, fX, fY);
+                dashWindow.setPosition(fX, fY);
 
-                num = 150;
-                sX = size.width-350;
-                sY = size.height;
-                fWidth = size.width-350-100;
-                fHeight = size.height-200;
-                fX = 100;
-                fY = 100;
+                dashWindow.loadUrl('http://127.0.0.1:3030/sample');
+//                dashWindow.loadUrl('file://' + __dirname + '/dash.html');
 
-                animateWindow(dashWindow, num, sX, sY, fWidth, fHeight, fX, fY);
 
             } else {
-                dashWindow.show = false;
+                dashWindow.close();
+                dashWindow = null;
             }
         }
     });
 }); 
 
+/*
 function animateWindow(w, num, sX, sY, fWidth, fHeight, fX, fY) {
     var i, aX, aY, aHeight, aWidth;
 
@@ -200,3 +239,23 @@ function sleep(milliseconds) {
         }
     }
 }
+
+
+function slideIn() {
+    var size = atomScreen.getPrimaryDisplay().workAreaSize;
+    var sX = size.width;
+
+    for (var i = 1; i < 351; i++) {
+        mainWindow.setPosition(sX - i, 0)
+    }
+}
+
+function slideOut() {
+    var size = atomScreen.getPrimaryDisplay().workAreaSize;
+    var sX = size.width - 350;
+
+    for (var i = 1; i < 350; i++) {
+        mainWindow.setPosition(sX + i, 0)
+    }
+}
+*/
