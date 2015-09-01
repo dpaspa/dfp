@@ -1,4 +1,3 @@
-[![Build Status](x.svg)](http://ipoogi.com)
 #desktop focal point
 
 > a desktop client which becomes the focal point of the ipoogi QMS
