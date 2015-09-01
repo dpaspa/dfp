@@ -3,7 +3,7 @@
 
 > a desktop client which becomes the focal point of the ipoogi QMS
 
-![](x.png)
+![](example.png)
 
 ## getting started
 
