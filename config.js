@@ -24,16 +24,12 @@ module.exports = {
     /*------------------------------------------------------------------------*/
     /** Appliction paths:                                                     */
     /*------------------------------------------------------------------------*/
-    pathFiles: 'x:/Business/ipoogi/files',  // Local file store
-    pathEffector: 'x:/Business/ipoogi/',    // Global effector templates
-
-    /*------------------------------------------------------------------------*/
-    /** MS Window format appliction paths:                                    */
-    /*------------------------------------------------------------------------*/
-    pathWinWord: '"C:\\Program\ Files\\Microsoft\ Office\\Office14\\winword"', 
+    pathLogo: 'q:/logo.png',                // Global logo image
+    pathWord: '"C:/Program Files/Microsoft Office/Office14/winword"', 
                                             // Path to MS Word executable
-    pathWinEffector: 'q:\\effectors\\pb.dotm',// Path to effector
-    pathWin2ndMsngrs: 'q:\\effectors\\',    // Path to secondary messengers
-    pathWinFiles: 'q:\\files\\',            // Path to local files
-    pathWinPhembots: 'q:\\phembots\\'       // Path to local phembot store
+    pathEffector: 'q:/effectors/pb.dotm',   // Path to effector
+    path2ndMsngrs: 'q:/effectors/',         // Path to secondary messengers
+//    pathFiles: 'q:/files/',                 // Path to local files
+    pathFiles: '/home/dpaspa/Dropbox/Business/aka/qms',// Path to local files
+    pathPhembots: 'q:/phembots/'            // Path to local phembot store
 }

@@ -43,7 +43,7 @@
     <div class="content-main" id="content-main-panel">
       <div id="task-content">
         <h2>Upcoming tasks.</h2>
-        <div id="result-phembots">
+        <div id="result-phembot">
           <div class="loader">Loading...
           </div>
         </div>
@@ -51,7 +51,7 @@
       </div>
       <div id="list-content">
         <h2>Master lists.</h2>
-        <div id="result-lists">
+        <div id="result-list">
           <div class="loader">Loading...
           </div>
         </div>
@@ -107,27 +107,27 @@
     </div>
   </div>
 
-  <script id="template-phembots" type="text/x-handlebars-template">
+  <script id="template-phembot" type="text/x-handlebars-template">
     <ul class="list">
-      {{#phembots}}
+      {{#phembot}}
       <li class="item-container">
-	<p class="info"><a href="{{_id}}" target="_blank">{{Doc}}</a></p>
-	<p class="desc">by <strong>{{_id}}</strong> on <strong>{{formatted_time}}</strong></p>
-	<p class="location">{{location}}</p>
+	    <p class="info"><a href="{{_id}}" target="_blank">{{Doc}}</a></p>
+	    <p class="desc">by <strong>{{_id}}</strong> on <strong>{{formatted_time}}</strong></p>
+	    <p class="location">{{location}}</p>
       </li>
-      {{/phembots}}
+      {{/phembot}}
     </ul>
   </script>
 
-  <script id="template-lists" type="text/x-handlebars-template">
+  <script id="template-list" type="text/x-handlebars-template">
     <ul class="list">
-      {{#lists}}
+      {{#list}}
       <li>
-	<p class="info"><a href="{{Title}}" target="_blank">{{Title}}</a></p>
-	<p class="desc">{{Description}}</p>
-	<p><span class="spacing">★ {{stargazers_count}}</span><span class="spacing">{{language}}</span></p>
+    	<p class="info"><a href="{{Title}}" target="_blank">{{Title}}</a></p>
+	    <p class="desc">{{Description}}</p>
+	    <p><span class="spacing">★ {{stargazers_count}}</span><span class="spacing">{{language}}</span></p>
       </li>
-      {{/lists}}
+      {{/list}}
     </ul>
   </script>
 

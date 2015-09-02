@@ -3,11 +3,12 @@ var path = require('path');
 var ipc = require('ipc');
 var notifier = require('node-notifier');
 var shell = require('shell');
-var CronJob = require('cron').CronJob;
+var schedule = require('node-schedule');
 var moment = require('moment-timezone');
 var dynamics = require('dynamics.js');
 var fs = require('fs');
 var xml2js = require('xml2js');
+var watch = require('watch');
 
 /* function renderFeedback() {
   var templateSource = document.getElementById('template-feedback').innerHTML;
@@ -62,29 +63,49 @@ function createNotification(upcomingEvent) {
   }
 }
 
-function callAPI(type, num, willNotify){
+function getAPI(type, num, willNotify){
+    var uri;
     var xhr = new XMLHttpRequest();
+
+    if (type === 'phembot') {
+        uri = config.apiUrl + 'phembot/' + num;
+    } else {
+        uri = config.apiUrl + 'list/catalog/' + num;
+    }
+
     xhr.onload = function(){
         var body = JSON.parse(this.responseText);
         var data = {};
         data[type] = body._items;
 
-        if (type === 'phembots' && willNotify) {
+        if (type === 'phembot' && willNotify) {
             createNotification(data[type][0]);
         }
 
         data.website = config.website;
-//        data.feedback = config.feedback;
         renderTemplate(type, data);
     };
-/*  xhr.open('GET', config.apiUrl + type, true); */
 
-    if (type === 'phembots') {
-        xhr.open('GET', config.apiUrl + 'phembots/' + num, true);
-    } else {
-        xhr.open('GET', config.apiUrl + 'lists/catalog/' + num, true);
-    }
+    xhr.open('GET', uri, true);
     xhr.send();
+}
+
+function postAPI(type, item){
+    var uri;
+    var xhr = new XMLHttpRequest();
+
+    if (type === 'phembot') {
+        uri = config.apiUrl + 'phembot';
+    } else {
+        uri = config.apiUrl + 'list';
+    }
+
+    xhr.onload = function(){
+        var body = JSON.parse(this.responseText);
+    };
+
+    xhr.open('POST', uri, true);
+    xhr.send(item);
 }
 
 document.body.addEventListener('click', function(e){
@@ -117,8 +138,8 @@ document.getElementById('dyno').addEventListener('drop', function(e) {
 //  alert("File Count: " + count + "\n");
 
     for (var i = 0; i < files.length; i++) {
-        console.log("File " + i + ": (" + (typeof files[i]) + ") : <" + files[i] + " > " +
-              files[i].name + " " + files[i].size + "\n");
+//        console.log("File " + i + ": (" + (typeof files[i]) + ") : <" + files[i] + " > " +
+//              files[i].name + " " + files[i].size + "\n");
         // Assuming xmlDoc is the XML DOM Document
         // var jsonText = JSON.stringify(xmlToJson(xmlDoc));
 //        var jsonText = JSON.parse(xmlToJson(contents));
@@ -126,16 +147,17 @@ document.getElementById('dyno').addEventListener('drop', function(e) {
 //        var data = fs.readFileSync(files[i].name, 'utf-8');
 //        var jsonText = toJson.xmlToJson(data);
 //        alert(jsonText);
+        console.log(files[i].path);
+        console.log(files[i].name.substr(files[i].name.lastIndexOf('.')+1));
         if (files[i].name.substr(files[i].name.lastIndexOf('.')+1) == 'json') {
             var parser = new xml2js.Parser();
-            fs.readFile(files[i].name, function(err, data) {
+            fs.readFile(files[i].path, function(err, data) {
                 parser.parseString(data, function (err, result) {
                     alert(JSON.stringify(result));
                 });
             });
 
-        } else if (files[i].name.substr(files[i].name.lastIndexOf('.')+1) == 'xls') {
-            console.log('here');
+        } else if (files[i].path.substr(files[i].path.lastIndexOf('.')+1) == 'xls') {
             document.getElementById('dyno').style.backgroundImage = 'url(./images/factory.gif)';
             ipc.send('event', 'excel');
 
@@ -295,14 +317,49 @@ document.getElementById('quit').addEventListener('click', function() {
   ipc.send('event', 'quit');
 })
 
-new CronJob('0 0,30 * * * *', function() {
-  callAPI('phembots', 6, true);
-  callAPI('lists', 3, true);
-}, null, true, config.timezone);
+/*
+schedule.scheduleJob('30 * * * * *', function(){
+    console.log('The answer to life, the universe, and everything!');
+    getAPI('phembot', 6, true);
+    getAPI('list', 3, true);
+});
+*/
+
+var rule = new schedule.RecurrenceRule();
+rule.second = [0, 30];
+
+schedule.scheduleJob(rule, function(){
+    getAPI('phembot', 6, true);
+    getAPI('list', 4, true);
+    console.log('The answer to life, the universe, and everything!');
+});
+
 
 // renderFeedback();
-callAPI('phembots', 6, false);
-callAPI('lists', 3, false);
+getAPI('phembot', 6, false);
+getAPI('list', 4, false);
+
+
+watch.watchTree(config.pathFiles, function (f, curr, prev) {
+    console.log('Now watching ' + config.pathFiles);
+    // Finished walking the tree
+    if (typeof f == "object" && prev === null && curr === null) {
+
+    // f is a new file
+    } else if (prev === null) {
+        console.log(f + ' is new');
+        var parser = new xml2js.Parser();
+        fs.readFile(f, function(err, data) {
+            postAPI('list', data);
+        });
+
+    // f was removed
+    } else if (curr.nlink === 0) {
+    } else {
+        // f was changed
+        console.log(f + ' changed');
+    }
+});
 
 /*
 function DrawSpiral(mod) {

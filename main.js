@@ -112,8 +112,8 @@ mb.on('ready', function ready () {
         }
 
         if (arg === 'excel') {
-	        console.log(config.pathWinword + '\ /q\ /x\ /l' + config.pathWinEffector + '\ ' + config.pathWinPhembots + 'anyxl.json');
-	        var version = shell.exec(config.pathWinword + '\ /q\ /x\ /l' + config.pathWinEffector + '\ ' + config.pathWinPhembots + 'anyxl.json', {async:true}).output;
+	        console.log(config.pathWord + '\ /q\ /x\ /l' + config.pathEffector + '\ ' + config.pathPhembots + 'anyxl.json');
+	        var version = shell.exec(config.pathWord + '\ /q\ /x\ /l' + config.pathEffector + '\ ' + config.pathPhembots + 'anyxl.json', {async:true}).output;
 //	        var version = shell.exec('"C:\\Program\ Files\\Microsoft\ Office\\Office14\\winword"\ /q\ /x\ /lx:\\Business\\ipoogi\\pb.dotm\ x:\\Business\\ipoogi\\anyxl.json', {async:true}).output;
         }
 
