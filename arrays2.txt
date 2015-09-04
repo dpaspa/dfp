@@ -1,0 +1,25 @@
+{
+    "data": [
+        {
+            "_id": "55e6a08873f323fe7ca2315e",
+            "Ref": "X72",
+            "Title": "Product x",
+            "Type": "BMR",
+            "Ver": "1",
+            "Data": "Data field 1"
+        },
+        {
+            "_id": "55e6a08873f323fe7ca2315f",
+            "Ref": "X73",
+            "Title": "Product y",
+            "Type": "BMR",
+            "Ver": "1",
+            "Data": "Data field 2"
+        }
+    ]
+}
+for (var key in obj) {
+   alert(' name=' + key + ' value=' + obj[key]);
+
+   // do some more stuff with obj[key]
+}

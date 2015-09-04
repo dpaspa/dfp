@@ -4,8 +4,18 @@
   <title>ipoogi desktop focal point</title>
   <meta charset="utf-8">
   <link rel="stylesheet" href="index.css">
-</head>
-<body>
+  <!-- script src="node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script-->
+  <script>
+    var refData=[];
+    function ref(v){
+        if(typeof v!=="object") return refData[v];
+        var id=refData.indexOf(v);
+        if(id==-1) id=refData.length;
+        refData[id]=v;
+        return id;
+    };
+  </script>
+
   <!--
   <div class="dash-container" id="dash-content">
     <webview src="http://dashingdemo.herokuapp.com/sample" style="width:600px height:100%"></webview>
@@ -47,7 +57,7 @@
           <div class="loader">Loading...
           </div>
         </div>
-        <p style="text-align: right"><a href="{{website}}" target="_blank">x more pending &hellip;</a></p>
+        <p style="text-align: right"><a href="" target="_blank">x more pending &hellip;</a></p>
       </div>
       <div id="list-content">
         <h2>Master lists.</h2>
@@ -55,7 +65,7 @@
           <div class="loader">Loading...
           </div>
         </div>
-        <p style="text-align: right"><a href="{{website}}" target="_blank">x more pending &hellip;</a></p>
+        <p style="text-align: right"><a href="" target="_blank">click for all &hellip;</a></p>
       </div>
       <div id="improve-content">
           <div class="ofi">
@@ -79,18 +89,20 @@
       <div id="dyno">
           <!-- canvas id="myCanvas" width="350" height="240"></canvas> -->
       </div>
-      <div id="discuss">
-          Chat<br><br>
-          1. Within your own company<br><br>
-          2. Anonymously with people in other companies<br><br>
-          3. With us for support and advice
+      <div class="content-chat" id="chat">
+        <div class="chat-messages">
+          <ul id="messages"></ul>
+        </div>
+        <form id="chat-form" action="">
+          <input id="m" autocomplete="off" /><button id="m-send">Send</button>
+        </form>
       </div>
     </div>
 
     <div class="menu-bottom">
       <div class="menu-bottom-left">
-        <div class="menu-item" id="discuss-label">
-          <a href="#" class="menu-btn">Discuss</a>
+        <div class="menu-item" id="chat-label">
+          <a href="#" class="menu-btn">Chat</a>
         </div>
         <div class="menu-item" id="cal-label">
           <a href="#" class="menu-btn">Calendar</a>
@@ -111,7 +123,7 @@
     <ul class="list">
       {{#phembot}}
       <li class="item-container">
-	    <p class="info"><a href="{{_id}}" target="_blank">{{Doc}}</a></p>
+        <p class="info"><a href="" target="phembot_{{_id}}">{{Doc}}</a></p>
 	    <p class="desc">by <strong>{{_id}}</strong> on <strong>{{formatted_time}}</strong></p>
 	    <p class="location">{{location}}</p>
       </li>
@@ -120,10 +132,10 @@
   </script>
 
   <script id="template-list" type="text/x-handlebars-template">
-    <ul class="list">
+    <ul class="list" id="listItem">
       {{#list}}
       <li>
-    	<p class="info"><a href="{{Title}}" target="_blank">{{Title}}</a></p>
+        <p class="info"><a href="" target="list_{{_id}}">{{Title}}</a></p>
 	    <p class="desc">{{Description}}</p>
 	    <p><span class="spacing">★ {{stargazers_count}}</span><span class="spacing">{{language}}</span></p>
       </li>

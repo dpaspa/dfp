@@ -1,4 +1,5 @@
 var config = require('./config');
+var drop = require('./drop');
 var path = require('path');
 var ipc = require('ipc');
 var notifier = require('node-notifier');
@@ -9,6 +10,7 @@ var dynamics = require('dynamics.js');
 var fs = require('fs');
 var xml2js = require('xml2js');
 var watch = require('watch');
+var io = require('socket.io');
 
 /* function renderFeedback() {
   var templateSource = document.getElementById('template-feedback').innerHTML;
@@ -69,6 +71,7 @@ function getAPI(type, num, willNotify){
 
     if (type === 'phembot') {
         uri = config.apiUrl + 'phembot/' + num;
+
     } else {
         uri = config.apiUrl + 'list/catalog/' + num;
     }
@@ -78,11 +81,12 @@ function getAPI(type, num, willNotify){
         var data = {};
         data[type] = body._items;
 
+        data['listURI'] = 'file:///home/dpaspa/Dropbox/Business/ipoogi/development/electron/table.html';
         if (type === 'phembot' && willNotify) {
-            createNotification(data[type][0]);
+            createNotification(data);
         }
 
-        data.website = config.website;
+//        data['website'] = config.website;
         renderTemplate(type, data);
     };
 
@@ -109,12 +113,23 @@ function postAPI(type, item){
 }
 
 document.body.addEventListener('click', function(e){
-  var el = e.target;
-  if (!el) return;
-  if (el.tagName.toLowerCase() == 'a' && el.target == '_blank'){
+    var el = e.target;
+    if (!el) return;
+
+    var ref = el.target;
+    if (!ref) return;
+
+//    if (el.tagName.toLowerCase() == 'a' && el.target == '_blank') {
     e.preventDefault();
-    shell.openExternal(el.href);
-  }
+//    shell.openExternal(el.href + '&ref=list%id=' + ref.substring(6));
+
+    var delimChar = ref.indexOf("_");
+    if (ref.substring(0, delimChar) == 'list') {
+        ipc.send('event', ref);
+
+    } else if (ref.substring(0, delimChar) == 'phembot') {
+        ipc.send('event', ref);
+    }
 });
 
 document.getElementById('dyno').addEventListener('click', function() {
@@ -122,49 +137,7 @@ document.getElementById('dyno').addEventListener('click', function() {
 })
 
 document.getElementById('dyno').addEventListener('drop', function(e) {
-    document.getElementById('dyno').style.backgroundImage = 'url(./images/spiral-run-send.gif)';
-
-    var dt = e.dataTransfer;
-    var files = dt.files;
-
-    var count = files.length;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-
-//  alert('landed on ' + e.target);
-
-//  alert("File Count: " + count + "\n");
-
-    for (var i = 0; i < files.length; i++) {
-//        console.log("File " + i + ": (" + (typeof files[i]) + ") : <" + files[i] + " > " +
-//              files[i].name + " " + files[i].size + "\n");
-        // Assuming xmlDoc is the XML DOM Document
-        // var jsonText = JSON.stringify(xmlToJson(xmlDoc));
-//        var jsonText = JSON.parse(xmlToJson(contents));
-//        var contents = fs.readFileSync files[i].name
-//        var data = fs.readFileSync(files[i].name, 'utf-8');
-//        var jsonText = toJson.xmlToJson(data);
-//        alert(jsonText);
-        console.log(files[i].path);
-        console.log(files[i].name.substr(files[i].name.lastIndexOf('.')+1));
-        if (files[i].name.substr(files[i].name.lastIndexOf('.')+1) == 'json') {
-            var parser = new xml2js.Parser();
-            fs.readFile(files[i].path, function(err, data) {
-                parser.parseString(data, function (err, result) {
-                    alert(JSON.stringify(result));
-                });
-            });
-
-        } else if (files[i].path.substr(files[i].path.lastIndexOf('.')+1) == 'xls') {
-            document.getElementById('dyno').style.backgroundImage = 'url(./images/factory.gif)';
-            ipc.send('event', 'excel');
-
-        } else {
-            ipc.send('event', 'word');
-        }
-    }
+    drop.processDrop(e);
 });
 
 document.addEventListener('dragover', function(e) {
@@ -192,9 +165,24 @@ document.getElementById('cal-label').addEventListener('click', function() {
   ipc.send('event', 'cal');
 })
 
-document.getElementById('discuss-label').addEventListener('click', function() {
-  document.getElementById('discuss').style.display = 'block';
+document.getElementById('chat-label').addEventListener('click', function() {
+  document.getElementById('chat').style.display = 'block';
   document.getElementById('dyno').style.display = 'none';
+
+//  ipc.send('event', 'chat');
+})
+
+document.getElementById('m-send').addEventListener('click', function() {
+//        var socket = new io.Socket();
+        var socket = io();
+        var chatter = document.getElementById('m').value;
+        socket.emit('chat message', chatter);
+        socket.send(chatter);
+        document.getElementById('m').value = '';
+//        document.getElementById('messages').append($('<li>').text(msg));
+        var newElement = document.createElement('li');
+        newElement.innerHTML = chatter;
+        document.getElementById("messages").appendChild(newElement);
 })
 
 document.getElementById('search-key').addEventListener('keydown', function(e) {
@@ -221,7 +209,7 @@ document.getElementById('prefs-label').addEventListener('click', function() {
 //  document.getElementById('list-label').style.backgroundColor = '#1f2023';
 //  document.getElementById('task-label').style.backgroundColor = '#1f2023';
 
-  document.getElementById('discuss').style.display = 'none';
+  document.getElementById('chat').style.display = 'none';
   document.getElementById('dyno').style.display = 'none';
   document.getElementById('searcher').style.display = 'none';
 //  document.getElementById('cal-content').style.display = 'none';
@@ -233,7 +221,7 @@ document.getElementById('prefs-label').addEventListener('click', function() {
 })
 
 document.getElementById('improve-label').addEventListener('click', function() {
-  document.getElementById('discuss').style.display = 'none';
+  document.getElementById('chat').style.display = 'none';
   document.getElementById('dyno').style.display = 'block';
   document.getElementById('searcher').style.display = 'block';
   document.getElementById('prefs-content').style.display = 'none';
@@ -249,7 +237,7 @@ document.getElementById('list-label').addEventListener('click', function() {
 //  document.getElementById('list-label').style.backgroundColor = '#707070';
 //  document.getElementById('task-label').style.backgroundColor = '#1f2023';
 
-  document.getElementById('discuss').style.display = 'none';
+  document.getElementById('chat').style.display = 'none';
   document.getElementById('dyno').style.display = 'block';
   document.getElementById('searcher').style.display = 'block';
 //  document.getElementById('cal-content').style.display = 'none';
@@ -266,7 +254,7 @@ document.getElementById('task-label').addEventListener('click', function() {
 //  document.getElementById('list-label').style.backgroundColor = '#1f2023';
 //  document.getElementById('task-label').style.backgroundColor = '#707070';
 
-  document.getElementById('discuss').style.display = 'none';
+  document.getElementById('chat').style.display = 'none';
   document.getElementById('dyno').style.display = 'block';
   document.getElementById('searcher').style.display = 'block';
 //  document.getElementById('cal-content').style.display = 'none';
@@ -331,7 +319,7 @@ rule.second = [0, 30];
 schedule.scheduleJob(rule, function(){
     getAPI('phembot', 6, true);
     getAPI('list', 4, true);
-    console.log('The answer to life, the universe, and everything!');
+//    console.log('The answer to life, the universe, and everything!');
 });
 
 
@@ -341,7 +329,7 @@ getAPI('list', 4, false);
 
 
 watch.watchTree(config.pathFiles, function (f, curr, prev) {
-    console.log('Now watching ' + config.pathFiles);
+//    console.log('Now watching ' + config.pathFiles);
     // Finished walking the tree
     if (typeof f == "object" && prev === null && curr === null) {
 

@@ -9,6 +9,7 @@ var ipc = require('ipc');
 var path = require('path');
 var shell = require('shelljs');
 var electronGoogleOauth = require('electron-google-oauth');
+var io = require('socket.io');
 
 // Report crashes to our server.
 require('crash-reporter').start();
@@ -21,6 +22,7 @@ var mainWindow = null;
 var atomScreen = null;
 var dashWindow = null;
 var calWindow = null;
+var listWindow = null;
 var detailWindow = null;
 var chunkWindow = null;
 
@@ -78,7 +80,7 @@ app.on('ready', function() {
     );
 
     var mainOnTop = setInterval(function(){
-        mainWindow.setAlwaysOnTop(true);
+//        mainWindow.setAlwaysOnTop(true);
     }, 1);
 
     // Emitted when the window is closed.
@@ -109,19 +111,17 @@ mb.on('ready', function ready () {
 
         if (arg === 'quit') {
             app.quit();
-        }
 
-        if (arg === 'excel') {
+        } else if (arg === 'excel') {
 	        console.log(config.pathWord + '\ /q\ /x\ /l' + config.pathEffector + '\ ' + config.pathPhembots + 'anyxl.json');
-	        var version = shell.exec(config.pathWord + '\ /q\ /x\ /l' + config.pathEffector + '\ ' + config.pathPhembots + 'anyxl.json', {async:true}).output;
+	        var effector = shell.exec(config.pathWord + '\ /q\ /x\ /l' + config.pathEffector + '\ ' + config.pathPhembots + 'anyxl.json', {async:true}).output;
 //	        var version = shell.exec('"C:\\Program\ Files\\Microsoft\ Office\\Office14\\winword"\ /q\ /x\ /lx:\\Business\\ipoogi\\pb.dotm\ x:\\Business\\ipoogi\\anyxl.json', {async:true}).output;
-        }
 
-        if (arg === 'word') {
-	        var version = shell.exec('"C:\\Program\ Files\\Microsoft\ Office\\Office14\\winword"\ /q\ /x\ /lx:\\Business\\ipoogi\\pb.dotm\ x:\\Business\\ipoogi\\anybot.json', {async:true}).output;
-        }
+        } else if (arg === 'word') {
+	        var effector = shell.exec(config.pathWord + '\ /q\ /x\ /l' + config.pathEffector + '\ ' + config.pathPhembots + 'anybot.json', {async:true}).output;
+//	        var version = shell.exec('"C:\\Program\ Files\\Microsoft\ Office\\Office14\\winword"\ /q\ /x\ /lx:\\Business\\ipoogi\\pb.dotm\ x:\\Business\\ipoogi\\anybot.json', {async:true}).output;
 
-        if (arg === 'cal') {
+        } else if (arg === 'cal') {
             if (calWindow == null) {
                 var size = atomScreen.getPrimaryDisplay().workAreaSize;
 
@@ -148,9 +148,8 @@ mb.on('ready', function ready () {
                 calWindow.close();
                 calWindow = null;
             }
-        }
 
-        if (arg === 'dash') {
+        } else if (arg === 'dash') {
             if (dashWindow == null) {
 //              mainWindow.setBounds({width: size.width, height: size.height, x: 0, y:0});
 //              shell.openExternal(el.href);
@@ -195,6 +194,42 @@ mb.on('ready', function ready () {
             } else {
                 dashWindow.close();
                 dashWindow = null;
+            }
+
+        } else {
+            var delimChar = arg.indexOf("_");
+            if (arg.substring(0, delimChar) == 'list') {
+                var type = 'list';
+
+            } else if (arg.substring(0, delimChar) == 'phembot') {
+                var type = 'phembot';
+            }
+            var id = arg.substring(delimChar + 1);
+
+            if (listWindow == null) {
+                var size = atomScreen.getPrimaryDisplay().workAreaSize;
+
+                fWidth = size.width-350-70;
+                fHeight = size.height-200;
+                fX = 70;
+                fY = 100;
+
+                //  Create the list window.
+                listWindow = new BrowserWindow({
+                    title: 'Desktop Focal Point Master Data List', 
+                    width: fWidth,
+                    height: fHeight,
+                    "skip-taskbar": true,
+                    frame: false,
+                    transparent: true
+                });
+
+                listWindow.setPosition(fX, fY);
+                listWindow.loadUrl('file://' + __dirname + '/table.html?type=' + type + '&id=' + id);
+
+            } else {
+                listWindow.close();
+                listWindow = null;
             }
         }
     });

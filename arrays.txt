@@ -1,0 +1,46 @@
+{
+    "data": [
+        {
+            "_id": "hello08873f323fe7ca2315e",
+            "Ref": "X72",
+            "Title": "Product x",
+            "Type": "BMR",
+            "Ver": "1",
+            "Data": "Data field 1"
+        },
+        {
+            "_id": "55e6a08873f323fe7ca2315f",
+            "Ref": "X73",
+            "Title": "Product y",
+            "Type": "BMR",
+            "Ver": "1",
+            "Data": "Data field 2"
+        }
+    ],
+    "columns": [
+        {
+            "title": "_id",
+            "data": "_id"
+        },
+        {
+            "title": "Ref",
+            "data": "Ref"
+        },
+        {
+            "title": "Title",
+            "data": "Title"
+        },
+        {
+            "title": "Type",
+            "data": "Type"
+        },
+        {
+            "title": "Ver",
+            "data": "Ver"
+        },
+        {
+            "title": "Data",
+            "data": "Data"
+        }
+    ]
+}
