@@ -1,13 +1,13 @@
+/**---------------------------------------------------------------------------*/
+/**                       Copyright © 2015 ipoogi.com                         */
+/**                                                                           */
+/** This is the configuration file for the dfp (desktop focal point) client   */
+/** preferences settings.                                                     */
 /*----------------------------------------------------------------------------*/
-/*                       Copyright © 2015 ipoogi.com                          */
-/*                                                                            */
-/** This file contains the dfp (desktop focal point) client configuration     */
-/** settings.                                                                 */
-/*----------------------------------------------------------------------------*/
-/* Revision history:                                                          */
-/* Ver By                Date        CC   Revision Note                       */
-/* 1   David Paspa       30-Aug-2015 NA   Initial design.                     */
-/*----------------------------------------------------------------------------*/
+/** Revision history:                                                         */
+/** Ver By                Date        CC   Revision Note                      */
+/** 1   David Paspa       30-Aug-2015 NA   Initial design.                    */
+/**---------------------------------------------------------------------------*/
 module.exports = {
     /*------------------------------------------------------------------------*/
     /** Users local preferences:                                              */
@@ -17,7 +17,7 @@ module.exports = {
     /*------------------------------------------------------------------------*/
     /** Web locations and services:                                           */
     /*------------------------------------------------------------------------*/
-    apiUrl: 'http://localhost:8888/api/',   // The phembot API URL for MongoDB
+    uriAPI: 'http://localhost:8888/api/',   // The phembot API URL for MongoDB
     website: 'http://ipoogi.com',           // ipoogi company website
     feedback: 'http://ipoogi.com',          // Chat URL
 

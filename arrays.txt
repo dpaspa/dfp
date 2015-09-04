@@ -20,7 +20,8 @@
     "columns": [
         {
             "title": "_id",
-            "data": "_id"
+            "data": "_id",
+            "visible": false
         },
         {
             "title": "Ref",

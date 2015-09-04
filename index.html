@@ -16,11 +16,6 @@
     };
   </script>
 
-  <!--
-  <div class="dash-container" id="dash-content">
-    <webview src="http://dashingdemo.herokuapp.com/sample" style="width:600px height:100%"></webview>
-  </div>
-  -->
   <div class="app-container">
     <div class="menu-top">
       <div class="menu-top-left">
@@ -47,9 +42,6 @@
         <input class="search-entry" id="search-key" type="text" required>
       </form>
     </div>
-    <div class="prefs-instruction" id="prefs-instr">
-        Preference changes are saved automatically
-    </div>
     <div class="content-main" id="content-main-panel">
       <div id="task-content">
         <h2>Upcoming tasks.</h2>
@@ -61,7 +53,7 @@
       </div>
       <div id="list-content">
         <h2>Master lists.</h2>
-        <div id="result-list">
+        <div id="result-catalog-list">
           <div class="loader">Loading...
           </div>
         </div>
@@ -82,6 +74,9 @@
         <webview src="https://www.google.com/calendar/embed?src=david.paspa%40gmail.com&ctz=Asia/Calcutta"></webview>
         </div> -->
       <div id="prefs-content">
+        <div>
+            Preference changes are saved automatically
+        </div>
       </div>
     </div>
 
@@ -131,15 +126,15 @@
     </ul>
   </script>
 
-  <script id="template-list" type="text/x-handlebars-template">
+  <script id="template-catalog-list" type="text/x-handlebars-template">
     <ul class="list" id="listItem">
-      {{#list}}
+      {{#catalog-list}}
       <li>
-        <p class="info"><a href="" target="list_{{_id}}">{{Title}}</a></p>
+        <p class="info"><a href="" target="catalog-list_{{_id}}">{{Title}}</a></p>
 	    <p class="desc">{{Description}}</p>
 	    <p><span class="spacing">★ {{stargazers_count}}</span><span class="spacing">{{language}}</span></p>
       </li>
-      {{/list}}
+      {{/catalog-list}}
     </ul>
   </script>
 

@@ -111,17 +111,22 @@ mb.on('ready', function ready () {
 
         if (arg === 'quit') {
             app.quit();
-
-        } else if (arg === 'excel') {
+        } 
+        
+        else if (arg === 'excel') {
 	        console.log(config.pathWord + '\ /q\ /x\ /l' + config.pathEffector + '\ ' + config.pathPhembots + 'anyxl.json');
 	        var effector = shell.exec(config.pathWord + '\ /q\ /x\ /l' + config.pathEffector + '\ ' + config.pathPhembots + 'anyxl.json', {async:true}).output;
 //	        var version = shell.exec('"C:\\Program\ Files\\Microsoft\ Office\\Office14\\winword"\ /q\ /x\ /lx:\\Business\\ipoogi\\pb.dotm\ x:\\Business\\ipoogi\\anyxl.json', {async:true}).output;
 
-        } else if (arg === 'word') {
+        } 
+        
+        else if (arg === 'word') {
 	        var effector = shell.exec(config.pathWord + '\ /q\ /x\ /l' + config.pathEffector + '\ ' + config.pathPhembots + 'anybot.json', {async:true}).output;
 //	        var version = shell.exec('"C:\\Program\ Files\\Microsoft\ Office\\Office14\\winword"\ /q\ /x\ /lx:\\Business\\ipoogi\\pb.dotm\ x:\\Business\\ipoogi\\anybot.json', {async:true}).output;
 
-        } else if (arg === 'cal') {
+        } 
+        
+        else if (arg === 'cal') {
             if (calWindow == null) {
                 var size = atomScreen.getPrimaryDisplay().workAreaSize;
 
@@ -144,12 +149,15 @@ mb.on('ready', function ready () {
 //                calWindow.loadUrl('https://www.google.com/calendar/embed?src=david.paspa%40gmail.com&ctz=Asia/Calcutta');
                 calWindow.loadUrl('file://' + __dirname + '/cal.html');
 
-            } else {
+            } 
+            else {
                 calWindow.close();
                 calWindow = null;
             }
 
-        } else if (arg === 'dash') {
+        } 
+        
+        else if (arg === 'dash') {
             if (dashWindow == null) {
 //              mainWindow.setBounds({width: size.width, height: size.height, x: 0, y:0});
 //              shell.openExternal(el.href);
@@ -191,19 +199,27 @@ mb.on('ready', function ready () {
 //                dashWindow.loadUrl('file://' + __dirname + '/dash.html');
 
 
-            } else {
+            } 
+            else {
                 dashWindow.close();
                 dashWindow = null;
             }
 
-        } else {
+        } 
+        
+        else {
             var delimChar = arg.indexOf("_");
             if (arg.substring(0, delimChar) == 'list') {
                 var type = 'list';
+                var field = '&name=';
 
-            } else if (arg.substring(0, delimChar) == 'phembot') {
+            } 
+            
+            else if (arg.substring(0, delimChar) == 'phembot') {
                 var type = 'phembot';
+                var field = '&id=';
             }
+
             var id = arg.substring(delimChar + 1);
 
             if (listWindow == null) {
@@ -225,9 +241,10 @@ mb.on('ready', function ready () {
                 });
 
                 listWindow.setPosition(fX, fY);
-                listWindow.loadUrl('file://' + __dirname + '/table.html?type=' + type + '&id=' + id);
+                listWindow.loadUrl('file://' + __dirname + '/table.html?type=' + type + field + id);
 
-            } else {
+            } 
+            else {
                 listWindow.close();
                 listWindow = null;
             }
