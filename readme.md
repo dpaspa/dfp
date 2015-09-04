@@ -7,14 +7,14 @@
 ## getting started
 
 1. download [the latest app](https://github.com/dpaspa/dfp) and move it to your `development` folder.
-- double-click to open the menubar app
+- double-click to open
 
 ## install
 
-1. install packages
+1. install packages from the app directory
 
   ```sh
-  npm i
+  npm install
   ```
 - run the app from command line without building it
 
