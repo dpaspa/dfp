@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ipoogi dashboard</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <div class="dashboardContent">
+        <div class="close-window">
+            <button onclick="windowClose()">Close</button>
+        </div>
+        <div class="dash-container" id="dash-content">
+    <!--webview src="http://dashingdemo.herokuapp.com/sample" style="width:600px height:100%"></webview-->
+        <webview src="http://127.0.0.1:3030/sample" style="width: 800px height 800px">
+        </webview>
+    </div>
+</body>
+</html>

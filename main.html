@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ipoogi desktop focal point</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="main.css">
+  <div class="app-container">
+    <div class="menu-top">
+      <div class="menu-top-left">
+        <div class="menu-item" id="plan-label">
+          <a href="#" class="menu-btn">Plan</a>
+        </div>
+        <div class="menu-item" id="do-label">
+          <a href="#" class="menu-btn">Do</a>
+        </div>
+        <div class="menu-item" id="check-label">
+          <a href="#" class="menu-btn">Check</a>
+        </div>
+        <div class="menu-item" id="act-label">
+          <a href="#" class="menu-btn">Act</a>
+        </div>
+        <div class="menu-item" id="list-label">
+          <a href="#" class="menu-btn">List</a>
+        </div>
+      </div>
+      <div class="menu-top-right">
+        <div class="menu-item" id="user-label">
+          <a href="#" class="menu-btn"><img src="./images/user.png"></a> </div>
+        <div class="menu-item" id="prefs-label">
+          <a href="#" class="menu-btn"><img src="./images/prefs.png"></a>
+        </div>
+      </div>
+    </div>
+    <div class="search" id="searcher">
+      <form>
+        <input class="search-entry" id="search-key" type="text" required>
+      </form>
+    </div>
+    <div class="content-main" id="content-main-panel">
+
+      <div id="plan-content">
+        <h2>Quality Assurance Plan</h2>
+        <div id="result-plan">
+          <div class="loader">Loading...
+          </div>
+        </div>
+        <p style="text-align: right"><a href="" target="_blank">click for all &hellip;</a></p>
+      </div>
+
+      <div id="do-content">
+        <h2>Upcoming tasks</h2>
+        <div id="result-phembot">
+          <div class="loader">Loading...
+          </div>
+        </div>
+        <p style="text-align: right"><a href="" target="_blank">x more pending &hellip;</a></p>
+      </div>
+
+      <div id="check-content">
+        <h2>Check</h2>
+      </div>
+
+      <div id="act-content">
+        <h2>Improve</h2>
+          <div class="ofi">
+            <h2>OFI</h2>
+            <p>Opportunity For Improvement selection.. open in another window.</p>
+          </div>
+          <div class="cc">
+            <h2>CC</h2>
+            <p>Change Control selection.. open in another window.</p>
+          </div>
+      </div>
+
+      <div id="list-content">
+        <h2>Master Data Lists</h2>
+        <div id="result-catalog-list">
+          <div class="loader">Loading...
+          </div>
+        </div>
+        <p style="text-align: right"><a href="" target="_blank">click for all &hellip;</a></p>
+      </div>
+
+      <div id="user-content">
+        <div>
+            User login information
+        </div>
+      </div>
+
+      <div id="prefs-content">
+        <div>
+            Preference changes are saved automatically
+        </div>
+      </div>
+    </div>
+
+    <div class="content-dynamic">
+      <div id="dyno">
+          <!-- canvas id="myCanvas" width="350" height="240"></canvas> -->
+      </div>
+      <div class="content-chat" id="chat">
+        <div class="chat-options">
+            <button id="chat-internal">Internal</button>
+            <button id="chat-external">External</button>
+            <button id="chat-support">Support</button>
+            <button id="chat-close">Close</button>
+        </div>
+        <div class="chat-messages" id="chat-background">
+          <ul id="messages"></ul>
+        </div>
+        <form id="chat-form" action="">
+          <input id="m" autocomplete="off" /><button id="m-send">Send</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="menu-bottom">
+      <div class="menu-bottom-left">
+        <div class="menu-item" id="chat-label">
+          <a href="#" class="menu-btn">Chat</a>
+        </div>
+        <div class="menu-item" id="cal-label">
+          <a href="#" class="menu-btn">Calendar</a>
+        </div>
+        <div class="menu-item" id="dash-label">
+          <a href="#" class="menu-btn">Dashboard</a>
+        </div>
+      </div>
+      <div class="menu-bottom-right">
+        <div class="menu-item">
+          <a href="#" id="quit" class="menu-btn">Quit</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script id="template-catalog-list" type="text/x-handlebars-template">
+    <ul class="list">
+      {{#catalog-list}}
+      <li>
+        <p class="info"><a href="" target="catalog-list_{{Name}}">{{Title}}</a></p>
+	    <p class="desc">{{Description}}</p>
+	    <p><span class="spacing">★ {{stargazers_count}}</span><span class="spacing">{{language}}</span></p>
+      </li>
+      {{/catalog-list}}
+    </ul>
+  </script>
+
+  <script id="template-phembot" type="text/x-handlebars-template">
+    <ul class="list">
+      {{#phembot}}
+      <li class="item-container">
+        <p class="info"><a href="" target="phembot_{{_id}}">{{Doc}}</a></p>
+	    <p class="desc">by <strong>{{_id}}</strong> on <strong>{{formatted_time}}</strong></p>
+	    <p class="location">{{location}}</p>
+      </li>
+      {{/phembot}}
+    </ul>
+  </script>
+
+  <script id="template-plan" type="text/x-handlebars-template">
+    <ul class="list">
+      {{#plan}}
+      <li>
+        <p class="info"><a href="" target="plan_{{_id}}">{{Title}}</a></p>
+	    <p class="desc">{{Description}}</p>
+	    <p><span class="spacing">★ {{stargazers_count}}</span><span class="spacing">{{language}}</span></p>
+      </li>
+      {{/plan}}
+    </ul>
+  </script>
+
+  <script src="lib/handlebars.js"></script>
+  <script>require("./main.js")</script>
+</body>
+</html>

@@ -1,313 +1,841 @@
+/**---------------------------------------------------------------------------*/
+/**                       Copyright © 2015 ipoogi.com                         */
+/**                                                                           */
+/** This is the browser script for the Electron application for the dfp       */
+/** (desktop focal point) application. The dfp is the desktop client          */
+/** application for integrating the user's workflows into the QMS back end.   */
+/*----------------------------------------------------------------------------*/
+/** Revision history:                                                         */
+/** Ver By                Date        CC   Revision Note                      */
+/** 1   David Paspa       30-Aug-2015 NA   Initial design.                    */
+/**---------------------------------------------------------------------------*/
 'use strict';
 
+/**---------------------------------------------------------------------------*/
+/** Declare module level variables included from other application files:     */
+/**---------------------------------------------------------------------------*/
 var config = require('./config');
-var menubar = require('menubar');
-var app = require('app'); // Module to control application life
-// var async = require('async');
-var BrowserWindow = require('browser-window'); // Module to create native browser window
-var ipc = require('ipc');
+var drop = require('./drop');
+
+/**---------------------------------------------------------------------------*/
+/** Declare module level variables included from other node packages:         */
+/**---------------------------------------------------------------------------*/
 var path = require('path');
-var shell = require('shelljs');
-var electronGoogleOauth = require('electron-google-oauth');
+var ipc = require('ipc');
+var remote = require('remote');
+var notifier = require('node-notifier');
+var shell = require('shell');
+var schedule = require('node-schedule');
+var moment = require('moment-timezone');
+var dynamics = require('dynamics.js');
+var fs = require('fs');
+var xml2js = require('xml2js');
+var watch = require('watch');
 var io = require('socket.io');
 
-// Report crashes to our server.
-require('crash-reporter').start();
+/**---------------------------------------------------------------------------*/
+/** Declare global program variables:                                         */
+/**---------------------------------------------------------------------------*/
+var lastdynamic;
 
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is GCed.
-var mainWindow = null;
+/******************************************************************************/
+/**                                                                           */
+/** STARTUP   STARTUP   STARTUP   STARTUP   STARTUP   STARTUP   STARTUP   STA */
+/**                                                                           */
+/** Get the phembot and master list catalog data for the main page:           */
+/******************************************************************************/
+getListMainPage('phembot', 6, true);
+getListMainPage('catalog-list', 4, false);
+getListMainPage('plan', 4, false);
 
-// Keep a global reference of the screen object and the other windows
-var atomScreen = null;
-var dashWindow = null;
-var calWindow = null;
-var listWindow = null;
-var detailWindow = null;
-var chunkWindow = null;
 
-// Quit when all windows are closed.
-app.on('window-all-closed', function() {
-    // On OS X it is common for applications and their menu bar
-    // to stay active until the user quits explicitly with Cmd + Q
-    if (process.platform != 'darwin') {
-        app.quit();
+/******************************************************************************/
+/**                                                                           */
+/** HANDLEBARS   HANDLEBARS   HANDLEBARS   HANDLEBARS   HANDLEBARS   HANDLEBA */
+/**                                                                           */
+/** These templates are compiled by Handlebars into HTML objects. The         */
+/** location of template insertion is defined by the {{}} tags in index.html. */
+/******************************************************************************/
+
+/**---------------------------------------------------------------------------*/
+/** Render the phembot and catalog lists in the main dfp window:              */
+/**---------------------------------------------------------------------------*/
+function renderTemplate(type, data) {
+    /**-----------------------------------------------------------------------*/
+    /** Get the template HTML and compile it with Handlebars:                 */
+    /**-----------------------------------------------------------------------*/
+    var templateSource = document.getElementById('template-' + type).innerHTML;
+    var template = Handlebars.compile(templateSource);
+
+    /**-----------------------------------------------------------------------*/
+    /** Get the results HTML and insert the resolved HTML:                    */
+    /**-----------------------------------------------------------------------*/
+    var resultsPlaceholder = document.getElementById('result-' + type);
+    resultsPlaceholder.innerHTML = template(data);
+}
+
+/******************************************************************************/
+/**                                                                           */
+/** EVENT LISTENERS   EVENT LISTENERS   EVENT LISTENERS   EVENT LISTENERS     */
+/**                                                                           */
+/** These set up the callbacks for the application user interation events.    */
+/** Events are triggered on the html objects defined in index.html.           */
+/******************************************************************************/
+
+/**---------------------------------------------------------------------------*/
+/** Calendar window has been closed:                                          */
+/**---------------------------------------------------------------------------*/
+ipc.on('calendarClose', function() {
+    document.getElementById("cal-label").style.backgroundColor = '#1f2023';
+});
+
+/**---------------------------------------------------------------------------*/
+/** Dashboard window has been closed:                                         */
+/**---------------------------------------------------------------------------*/
+ipc.on('dashboardClose', function() {
+    document.getElementById("dash-label").style.backgroundColor = '#1f2023';
+});
+
+/**---------------------------------------------------------------------------*/
+/** Body event. Used to check for a phembot or list-catlog selection:         */
+/**---------------------------------------------------------------------------*/
+document.body.addEventListener('click', function(e){
+    /**-----------------------------------------------------------------------*/
+    /** Get the listener event target html object and check it is valid:      */
+    /**-----------------------------------------------------------------------*/
+    var el = e.target;
+    if (!el) return;
+
+    /**-----------------------------------------------------------------------*/
+    /** Get the target of the html object and check that is valid. The list   */
+    /** items have their object type and id as the href target attribute:     */
+    /**-----------------------------------------------------------------------*/
+    var ref = el.target;
+    if (!ref) return;
+
+    /**-----------------------------------------------------------------------*/
+    /** Stop the event bubbling through the application so it can be handled  */
+    /** exclusively in the local code below:                                  */
+    /**-----------------------------------------------------------------------*/
+    e.preventDefault();
+
+    /**-----------------------------------------------------------------------*/
+    /** Get the location of the 'underscore' character which separates the    */
+    /** list item type and id or name:                                        */
+    /**-----------------------------------------------------------------------*/
+    var delimChar = ref.indexOf("_");
+
+    /**-----------------------------------------------------------------------*/
+    /** Check if this is from the list tab for the catalog of master data     */
+    /** lists:                                                                */
+    /**-----------------------------------------------------------------------*/
+    if (ref.substring(0, delimChar) == 'catalog-list') {
+        /**-------------------------------------------------------------------*/
+        /** Get the catalog list name and the full list data from the backend */
+        /** API. Send it to the renderer side:                                */
+        /**-------------------------------------------------------------------*/
+        var name = ref.substring(delimChar + 1);
+//        var data = getListDetailPage(name, 0);
+        getListDetailPage(name, 0);
+    } 
+
+    /**-----------------------------------------------------------------------*/
+    /** Check if this is from the phembot task list:                          */
+    /**-----------------------------------------------------------------------*/
+    else if (ref.substring(0, delimChar) == 'phembot') {
+        /**-------------------------------------------------------------------*/
+        /** TODO:                                                             */
+        /**-------------------------------------------------------------------*/
+    }
+    else {
+        /**-------------------------------------------------------------------*/
+        /** What to do:                                                       */
+        /**-------------------------------------------------------------------*/
     }
 });
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-app.on('ready', function() {
+/**---------------------------------------------------------------------------*/
+/** Act label event. Used to display the act selection box on the dfp         */
+/** window:                                                                   */
+/**---------------------------------------------------------------------------*/
+document.getElementById('act-label').addEventListener('click', function() {
+    setDisplayContext('act');
+})
 
-    atomScreen = require('screen');
-    var size = atomScreen.getPrimaryDisplay().workAreaSize;
+/**---------------------------------------------------------------------------*/
+/** Calender label event. Used to render the new calendar window:             */
+/**---------------------------------------------------------------------------*/
+document.getElementById('cal-label').addEventListener('click', function() {
+    /**-----------------------------------------------------------------------*/
+    /** Toggle the label display and send the event to the renderer process:  */
+    /**-----------------------------------------------------------------------*/
+    document.getElementById("cal-label").style.backgroundColor = '#828282';
+    ipc.send('calendar');
+})
 
-    // Create the browser window.
-    mainWindow = new BrowserWindow({
-        title: 'Desktop Focal Point', 
-        width: 350, 
-        height: size.height, 
-        "skip-taskbar": true,
-        "always-on-top": true,
-        frame: false
-/*              "node-integration": "iframe",
-        "web-preferences": {
-            "web-security": false
-        } */
-    });
-
-    mainWindow.setPosition(size.width-350, 0)
-
-    // and load the index.html of the app.
-    mainWindow.loadUrl('file://' + __dirname + '/index.html');
-    // Open the devtools.
-    // mainWindow.openDevTools();
-
-    var googleOauth = electronGoogleOauth(mainWindow);
-
-    // retrieve authorization code only 
-    var authCode = googleOauth.getAuthorizationCode(
-        ['https://www.google.com/m8/feeds'],
-        '818711560460-ocobmj32fqklf9nd04mqjqerloc2qhnk.apps.googleusercontent.com',
-        '1Runtywm59xTHd5z8EWznmzd'
-    );
-
-    // retrieve access token and refresh token 
-    var result = googleOauth.getAccessToken(
-        ['https://www.google.com/m8/feeds'],
-        '818711560460-ocobmj32fqklf9nd04mqjqerloc2qhnk.apps.googleusercontent.com',
-        '1Runtywm59xTHd5z8EWznmzd'
-    );
-
-    var mainOnTop = setInterval(function(){
-//        mainWindow.setAlwaysOnTop(true);
-    }, 1);
-
-    // Emitted when the window is closed.
-    mainWindow.on('closed', function() {
-        clearInterval(mainOnTop);
-
-        // Dereference the window object, usually you would store windows
-        // in an array if your app supports multi windows, this is the time
-        // when you should delete the corresponding element.
-        mainWindow = null;
-    });
+/**---------------------------------------------------------------------------*/
+/** Chat network button events:                                               */
+/**---------------------------------------------------------------------------*/
+document.getElementById('chat-external').addEventListener('click', function() {
+    document.getElementById('chat-background').style.backgroundColor = '#ff8295';
+});
+document.getElementById('chat-internal').addEventListener('click', function() {
+    document.getElementById('chat-background').style.backgroundColor = '#82ff98';
+});
+document.getElementById('chat-support').addEventListener('click', function() {
+    document.getElementById('chat-background').style.backgroundColor = '#82e0ff';
 });
 
+/**---------------------------------------------------------------------------*/
+/** Chat label event. Used to display the chat box on the dfp window:         */
+/**---------------------------------------------------------------------------*/
+document.getElementById('chat-label').addEventListener('click', function() {
+    /**-----------------------------------------------------------------------*/
+    /** Toggle the label display, show the chat div and hide the dynamic      */
+    /** content div:                                                          */
+    /**-----------------------------------------------------------------------*/
+    if (document.getElementById("chat-form").offsetParent === null) {
+        setDisplayContext('dynamic-chat');
+    }
+    else {
+        setDisplayContext('dynamic-dyno');
+    }
+})
 
+/**---------------------------------------------------------------------------*/
+/** Chat close event. Used to close the chat box on the dfp window:           */
+/**---------------------------------------------------------------------------*/
+document.getElementById('chat-close').addEventListener('click', function() {
+    /**-----------------------------------------------------------------------*/
+    /** Toggle the label display, show the chat div and hide the dynamic      */
+    /** content div:                                                          */
+    /**-----------------------------------------------------------------------*/
+    setDisplayContext('dynamic-dyno');
+})
 
-var mb = menubar({
-    width: 350,
-    height: 480,
-    index: 'file://' + path.join(__dirname, 'index.html'),
-    icon: path.join(__dirname, 'IconTemplate.png')
+/**---------------------------------------------------------------------------*/
+/** Check label event. Used to display the check content:                     */
+/**---------------------------------------------------------------------------*/
+document.getElementById('check-label').addEventListener('click', function() {
+    setDisplayContext('check');
+})
+
+/**---------------------------------------------------------------------------*/
+/** Dashboard label click event. Used to render the new dashboard window:     */
+/**---------------------------------------------------------------------------*/
+document.getElementById('dash-label').addEventListener('click', function() {
+    /**-----------------------------------------------------------------------*/
+    /** Toggle the label display and send the event to the renderer process:  */
+    /**-----------------------------------------------------------------------*/
+    document.getElementById("dash-label").style.backgroundColor = '#828282';
+    ipc.send('dashboard');
+})
+
+/**---------------------------------------------------------------------------*/
+/** Do label click event. Used to display the phembot list:                   */
+/**---------------------------------------------------------------------------*/
+document.getElementById('do-label').addEventListener('click', function() {
+    setDisplayContext('do');
+})
+
+/**---------------------------------------------------------------------------*/
+/** Dynamic content click event. Used to reset the dyno display:              */
+/** TODO: Display dyno display options... get more content:                   */
+/**---------------------------------------------------------------------------*/
+document.getElementById('dyno').addEventListener('click', function() {
+    /**-----------------------------------------------------------------------*/
+    /** For now just reset the dynamic image:                                 */
+    /**-----------------------------------------------------------------------*/
+    setDisplayContext('dyno');
+})
+
+/**---------------------------------------------------------------------------*/
+/** Dynamic content drop event. This is the user's single point of exit for   */
+/** all workflows used to send files for processing.                          */
+/**---------------------------------------------------------------------------*/
+document.getElementById('dyno').addEventListener('drop', function(e) {
+    /**-----------------------------------------------------------------------*/
+    /** Process the drop event based on what was dropped on the dyno:         */
+    /**-----------------------------------------------------------------------*/
+    drop.processDrop(e);
 });
 
-mb.on('ready', function ready () {
+/**---------------------------------------------------------------------------*/
+/** List label event. Used to display the master data list catalog:           */
+/**---------------------------------------------------------------------------*/
+document.getElementById('list-label').addEventListener('click', function() {
+    setDisplayContext('list');
+})
 
-    ipc.on('event', function(event, arg) {
-        var i, aX, aY, aHeight, aWidth;
-        var num, sX, sY, fWidth, fHeight, fX, fY;
+/**---------------------------------------------------------------------------*/
+/** Message chat event. Used to add the message to the message queue display: */
+/**---------------------------------------------------------------------------*/
+document.getElementById('m-send').addEventListener('click', function() {
+    /**-----------------------------------------------------------------------*/
+    /** Send the chat message to the server via a socket:                     */
+    /**-----------------------------------------------------------------------*/
+    var chatter = document.getElementById('m').value;
+    if (chatter.length > 0) {
+        /**-------------------------------------------------------------------*/
+        /** Send the chat message to the server via a socket:                 */
+        /**-------------------------------------------------------------------*/
+        var socket = io();
+        socket.emit('chat message', chatter);
+        socket.send(chatter);
 
-        if (arg === 'quit') {
-            app.quit();
-        } 
-        
-        else if (arg === 'excel') {
-	        console.log(config.pathWord + '\ /q\ /x\ /l' + config.pathEffector + '\ ' + config.pathPhembots + 'anyxl.json');
-	        var effector = shell.exec(config.pathWord + '\ /q\ /x\ /l' + config.pathEffector + '\ ' + config.pathPhembots + 'anyxl.json', {async:true}).output;
-//	        var version = shell.exec('"C:\\Program\ Files\\Microsoft\ Office\\Office14\\winword"\ /q\ /x\ /lx:\\Business\\ipoogi\\pb.dotm\ x:\\Business\\ipoogi\\anyxl.json', {async:true}).output;
+        /**-------------------------------------------------------------------*/
+        /** Clear the input box and add the message to the list:              */
+        /** TODO: Full refresh but only on first message:                     */
+        /**-------------------------------------------------------------------*/
+        document.getElementById('m').value = '';
+        var newElement = document.createElement('li');
+        newElement.innerHTML = chatter;
+        document.getElementById("messages").appendChild(newElement);
+    }
+});
 
-        } 
-        
-        else if (arg === 'word') {
-	        var effector = shell.exec(config.pathWord + '\ /q\ /x\ /l' + config.pathEffector + '\ ' + config.pathPhembots + 'anybot.json', {async:true}).output;
-//	        var version = shell.exec('"C:\\Program\ Files\\Microsoft\ Office\\Office14\\winword"\ /q\ /x\ /lx:\\Business\\ipoogi\\pb.dotm\ x:\\Business\\ipoogi\\anybot.json', {async:true}).output;
+/**---------------------------------------------------------------------------*/
+/** Plan label click event. Used to display the QA plan (list):               */
+/**---------------------------------------------------------------------------*/
+document.getElementById('plan-label').addEventListener('click', function() {
+    setDisplayContext('plan');
+})
 
-        } 
-        
-        else if (arg === 'cal') {
-            if (calWindow == null) {
-                var size = atomScreen.getPrimaryDisplay().workAreaSize;
+/**---------------------------------------------------------------------------*/
+/** Preferences icon event. Used to display the settings screen:              */
+/**---------------------------------------------------------------------------*/
+document.getElementById('prefs-label').addEventListener('click', function() {
+    setDisplayContext('prefs');
+})
 
-                fWidth = size.width-350-70;
-                fHeight = size.height-200;
-                fX = 70;
-                fY = 100;
+/**---------------------------------------------------------------------------*/
+/** Search box key press event. This is used to display learning chunks which */
+/** are rendered in the new chunk windows:                                    */
+/**---------------------------------------------------------------------------*/
+document.getElementById('search-key').addEventListener('keydown', function(e) {
+    if (e.keyCode === 13) {
+        var searchText = document.getElementById('search-key').value;
+        ipc.send('learning', searchText);
+    }
+})
 
-            //  Create the calendar window.
-                calWindow = new BrowserWindow({
-                    title: 'Desktop Focal Point Calendar', 
-                    width: fWidth,
-                    height: fHeight,
-                    "skip-taskbar": true,
-                    frame: false,
-                    transparent: true
-                });
+/**---------------------------------------------------------------------------*/
+/** User icon click event. Used to display the user profile and login details.*/
+/**---------------------------------------------------------------------------*/
+document.getElementById('user-label').addEventListener('click', function() {
+    setDisplayContext('user');
+/*    var el = document.getElementById("user-label")
+    dynamics.animate(el, 
+        {
+        translateX: -250,
+        scale: 2,
+        opacity: 0.5
+        }, 
+        {
+        type: dynamics.spring,
+        frequency: 200,
+        friction: 200,
+        duration: 1500
+        }
+    )
+*/
+//    ipc.send('event', 'user');
+});
 
-                calWindow.setPosition(fX, fY);
-//                calWindow.loadUrl('https://www.google.com/calendar/embed?src=david.paspa%40gmail.com&ctz=Asia/Calcutta');
-                calWindow.loadUrl('file://' + __dirname + '/cal.html');
+/**---------------------------------------------------------------------------*/
+/** Application quit icon click event to close the application:               */
+/**---------------------------------------------------------------------------*/
+document.getElementById('quit').addEventListener('click', function() {
+    /**-----------------------------------------------------------------------*/
+    /** Send the event to the renderer process to close down gracefully:      */
+    /**-----------------------------------------------------------------------*/
+    ipc.send('quit');
+})
 
-            } 
-            else {
-                calWindow.close();
-                calWindow = null;
-            }
+/**---------------------------------------------------------------------------*/
+/** Function: setDisplayContext                                               */
+/** Sets the display of the application by showing or hiding things.          */
+/**                                                                           */
+/** @param {string} context  The application display context name.            */
+/**---------------------------------------------------------------------------*/
+function setDisplayContext(context) {
+    /**-----------------------------------------------------------------------*/
+    /** Hide the dyno and shot the chat box if required:                      */
+    /**-----------------------------------------------------------------------*/
+    var checkdynamic;
+    if (context === 'dynamic-chat') {
+        lastdynamic = 'chat';
+        document.getElementById("chat-label").style.backgroundColor = '#828282';
+        document.getElementById('chat').style.display = 'block';
+        document.getElementById('dyno').style.display = 'none';
+    }
 
-        } 
-        
-        else if (arg === 'dash') {
-            if (dashWindow == null) {
-//              mainWindow.setBounds({width: size.width, height: size.height, x: 0, y:0});
-//              shell.openExternal(el.href);
+    /**-----------------------------------------------------------------------*/
+    /** Close the chat box and show the dyno if required:                     */
+    /**-----------------------------------------------------------------------*/
+    else if (context === 'dynamic-dyno') {
+        lastdynamic = 'dyno';
+        document.getElementById("chat-label").style.backgroundColor = '#1f2023';
+        document.getElementById('chat').style.display = 'none';
+        document.getElementById('dyno').style.display = 'block';
+    }
+    else {
+        /**-------------------------------------------------------------------*/
+        /** Reset all the labels:                                             */
+        /**-------------------------------------------------------------------*/
+        document.getElementById("act-label").style.backgroundColor = '#1f2023';
+        document.getElementById("check-label").style.backgroundColor = '#1f2023';
+        document.getElementById("do-label").style.backgroundColor = '#1f2023';
+        document.getElementById("list-label").style.backgroundColor = '#1f2023';
+        document.getElementById("plan-label").style.backgroundColor = '#1f2023';
+        document.getElementById("prefs-label").style.backgroundColor = '#1f2023';
+        document.getElementById("user-label").style.backgroundColor = '#1f2023';
 
-//                var remote = require('remote');
-                var size = atomScreen.getPrimaryDisplay().workAreaSize;
+        /**-------------------------------------------------------------------*/
+        /** Hide everything in the top part as not just a dyno change:        */
+        /**-------------------------------------------------------------------*/
+        document.getElementById('act-content').style.display = 'none';
+        document.getElementById('check-content').style.display = 'none';
+        document.getElementById('do-content').style.display = 'none';
+        document.getElementById('list-content').style.display = 'none';
+        document.getElementById('plan-content').style.display = 'none';
+        document.getElementById('prefs-content').style.display = 'none';
+        document.getElementById('searcher').style.display = 'none';
+        document.getElementById('user-content').style.display = 'none';
 
-                num = 150;
-                sX = size.width-350;
-                sY = size.height;
-                fWidth = size.width-350-70;
-                fHeight = size.height-200;
-                fX = 70;
-                fY = 100;
+        /**-------------------------------------------------------------------*/
+        /** Hide the quit button. It is only shown on the user screen:        */
+        /**-------------------------------------------------------------------*/
+        document.getElementById('quit').style.display = 'none';
+    }
 
-            //  Create the dashboard window.
-                dashWindow = new BrowserWindow({
-                    title: 'Desktop Focal Point Dashboard', 
-//                    width: 0, 
-//                    height: 0, 
-                    width: fWidth,
-                    height: fHeight,
-                    "skip-taskbar": true,
-                    frame: false,
-                    kiosk: true,
-                    transparent: true
-//                    frame: false
-    /*              "node-integration": "iframe",
-                    "web-preferences": {
-                        "web-security": false
-                    } */
-                });
+    /**-----------------------------------------------------------------------*/
+    /** Process according to display context:                                 */
+    /**-----------------------------------------------------------------------*/
+    switch(context) {
+        /**-------------------------------------------------------------------*/
+        /** Improvement selection options when "Act" label is clicked:        */
+        /**-------------------------------------------------------------------*/
+        case('act'):
+            checkdynamic = true;
+            document.getElementById("act-label").style.backgroundColor = '#828282';
+            document.getElementById('act-content').style.display = 'block';
+            document.getElementById('searcher').style.display = 'block';
+            break;
 
-//                dashWindow.loadUrl('http://dashingdemo.herokuapp.com/sample');
-//                animateWindow(dashWindow, num, sX, sY, fWidth, fHeight, fX, fY);
-                dashWindow.setPosition(fX, fY);
+        /**-------------------------------------------------------------------*/
+        /** Check selection options when "Check" label is clicked:            */
+        /**-------------------------------------------------------------------*/
+        case('check'):
+            checkdynamic = true;
+            document.getElementById("check-label").style.backgroundColor = '#828282';
+            document.getElementById('check-content').style.display = 'block';
+            document.getElementById('searcher').style.display = 'block';
+            break;
 
-                dashWindow.loadUrl('http://127.0.0.1:3030/sample');
-//                dashWindow.loadUrl('file://' + __dirname + '/dash.html');
+        /**-------------------------------------------------------------------*/
+        /** Phembot task list when "Task" label is clicked:                   */
+        /**-------------------------------------------------------------------*/
+        case('do'):
+            checkdynamic = true;
+            document.getElementById("do-label").style.backgroundColor = '#828282';
+            document.getElementById('do-content').style.display = 'block';
+            document.getElementById('searcher').style.display = 'block';
+            break;
 
+        /**-------------------------------------------------------------------*/
+        /** Reset the dynamic display dyno when it is clicked:                */
+        /**-------------------------------------------------------------------*/
+        case('dyno'):
+            document.getElementById('dyno').style.backgroundImage = 'url(./images/spiral-static.png)';
+            break;
 
-            } 
-            else {
-                dashWindow.close();
-                dashWindow = null;
-            }
+        /**-------------------------------------------------------------------*/
+        /** Catalog of master data lists when "List" label is clicked:        */
+        /**-------------------------------------------------------------------*/
+        case('list'):
+            checkdynamic = true;
+            document.getElementById("list-label").style.backgroundColor = '#828282';
+            document.getElementById('list-content').style.display = 'block';
+            document.getElementById('searcher').style.display = 'block';
+            break;
 
-        } 
-        
+        /**-------------------------------------------------------------------*/
+        /** Catalog of master data lists when "List" label is clicked:        */
+        /**-------------------------------------------------------------------*/
+        case('plan'):
+            checkdynamic = true;
+            document.getElementById("plan-label").style.backgroundColor = '#828282';
+            document.getElementById('plan-content').style.display = 'block';
+            document.getElementById('searcher').style.display = 'block';
+            break;
+
+        /**-------------------------------------------------------------------*/
+        /** Preferences screen when the settings icon is clicked:             */
+        /**-------------------------------------------------------------------*/
+        case('prefs'):
+            checkdynamic = false;
+            document.getElementById("prefs-label").style.backgroundColor = '#828282';
+            document.getElementById('prefs-content').style.display = 'block';
+            document.getElementById('chat').style.display = 'none';
+            document.getElementById('dyno').style.display = 'none';
+            break;
+
+        /**-------------------------------------------------------------------*/
+        /** Catalog of master data lists when "List" label is clicked:        */
+        /**-------------------------------------------------------------------*/
+        case('user'):
+            checkdynamic = false;
+            document.getElementById("user-label").style.backgroundColor = '#828282';
+            document.getElementById('user-content').style.display = 'block';
+            document.getElementById('chat').style.display = 'none';
+            document.getElementById('dyno').style.display = 'none';
+            document.getElementById('quit').style.display = 'block';
+            break;
+
+        default:
+    }
+
+    /**-----------------------------------------------------------------------*/
+    /** Return to chat or dyno if both were hidden:                           */
+    /**-----------------------------------------------------------------------*/
+    if (checkdynamic) {
+        if (lastdynamic === 'chat') {
+            document.getElementById('chat').style.display = 'block';
+        }
         else {
-            var delimChar = arg.indexOf("_");
-            if (arg.substring(0, delimChar) == 'list') {
-                var type = 'list';
-                var field = '&name=';
+            document.getElementById('dyno').style.display = 'block';
+        }
+    }
+}
 
-            } 
-            
-            else if (arg.substring(0, delimChar) == 'phembot') {
-                var type = 'phembot';
-                var field = '&id=';
-            }
+/******************************************************************************/
+/**                                                                           */
+/** MODULE FUNCTIONS   MODULE FUNCTIONS   MODULE FUNCTIONS   MODULE FUNCTIONS */
+/**                                                                           */
+/** Funtions such as schedule and file system events using external node      */
+/** modules.                                                                  */
+/******************************************************************************/
 
-            var id = arg.substring(delimChar + 1);
+/**---------------------------------------------------------------------------*/
+/** Module: node-schedule                                                     */
+/** Periodically runs to refresh the data display.                            */
+/** schedule.scheduleJob('30 * * * * *', function(){  //cron style            */
+/**                                                                           */
+/** Set a new rule to run when the clock second hand is at 0 and also at 30,  */
+/** which is every 30 seconds or two times per minute. Fast enough:           */
+/**---------------------------------------------------------------------------*/
+var rule = new schedule.RecurrenceRule();
+rule.second = [0, 30];
 
-            if (listWindow == null) {
-                var size = atomScreen.getPrimaryDisplay().workAreaSize;
+/**---------------------------------------------------------------------------*/
+/** Schedule a job on the 30 second rule to update the main dfp window lists: */
+/**---------------------------------------------------------------------------*/
+schedule.scheduleJob(rule, function(){
+    getListMainPage('phembot', 6, true);
+    getListMainPage('catalog-list', 4, false);
+    getListMainPage('plan', 4, false);
+});
 
-                fWidth = size.width-350-70;
-                fHeight = size.height-200;
-                fX = 70;
-                fY = 100;
+/**---------------------------------------------------------------------------*/
+/** Module: watch                                                             */
+/** Monitor the local file store for any changes.                             */
+/**                                                                           */
+/** Setup the fs.watch object to monitor the local files directory.           */
+/**---------------------------------------------------------------------------*/
+watch.watchTree(config.pathFiles, function (f, curr, prev) {
+    /**-----------------------------------------------------------------------*/
+    /** Assume there will be nothing to do:                                   */
+    /**-----------------------------------------------------------------------*/
+    var processFIle = false;
 
-                //  Create the list window.
-                listWindow = new BrowserWindow({
-                    title: 'Desktop Focal Point Master Data List', 
-                    width: fWidth,
-                    height: fHeight,
-                    "skip-taskbar": true,
-                    frame: false,
-                    transparent: true
-                });
+    /**-----------------------------------------------------------------------*/
+    /** Check if finished walking the directory tree.                         */
+    /**-----------------------------------------------------------------------*/
+    if (typeof f == "object" && prev === null && curr === null) {
+        /**-------------------------------------------------------------------*/
+        /** Nothing more to do:                                               */
+        /**-------------------------------------------------------------------*/
+    } 
+    
+    /**-----------------------------------------------------------------------*/
+    /** Process any new file:                                                 */
+    /**-----------------------------------------------------------------------*/
+    else if (prev === null) {
+        processFIle = true;
+    } 
+    
+    /**-----------------------------------------------------------------------*/
+    /** Check if the file was removed:                                        */
+    /**-----------------------------------------------------------------------*/
+    else if (curr.nlink === 0) {
+        /**-------------------------------------------------------------------*/
+        /** Just forget about it:                                             */
+        /**-------------------------------------------------------------------*/
+    } 
+    else {
+        /**-------------------------------------------------------------------*/
+        /** The file was changed in some way. Better process it:              */
+        /**-------------------------------------------------------------------*/
+        processFIle = true;
+    }
 
-                listWindow.setPosition(fX, fY);
-                listWindow.loadUrl('file://' + __dirname + '/table.html?type=' + type + field + id);
+    /**-----------------------------------------------------------------------*/
+    /** Check if the file is new or changed:                                  */
+    /**-----------------------------------------------------------------------*/
+    if (processFIle) {
+        /**-------------------------------------------------------------------*/
+        /** The file was changed in some way. Better process it:              */
+        /**-------------------------------------------------------------------*/
+        console.log(f + ' is being processed');
+        var parser = new xml2js.Parser();
+        fs.readFile(f, function(err, data) {
+            postAPI('list', data);
+        });
+    }
+});
 
-            } 
-            else {
-                listWindow.close();
-                listWindow = null;
+/**---------------------------------------------------------------------------*/
+/** Module: node-notifier                                                     */
+/** Function: createNotification                                              */
+/** Creates a native OS notification with the phembot data.                   */
+/**                                                                           */
+/** @param {string} phembot  The phembot object.                              */
+/**---------------------------------------------------------------------------*/
+function createNotification(phembot) {
+    /**-----------------------------------------------------------------------*/
+    /** Check if the phembot due date is today:                               */
+    /**-----------------------------------------------------------------------*/
+/*    if (isWithin24Hours(phembot.formatted_time)) { */
+        /**-------------------------------------------------------------------*/
+        /** Create the OS native notification:                                */
+        /** TODO: Replace phembot.formatted_time                              */
+        /**-------------------------------------------------------------------*/
+/*        notifier.notify({
+            'title': phembot.Title,
+            'message': phembot.Title + ' is due soon on ' + phembot.Type,
+            'icon': path.join(__dirname, '/menuIcon1.png'),
+            'wait': true,
+            'open': phembot.Ref
+        });
+    }
+*/
+}
+
+/**---------------------------------------------------------------------------*/
+/** Function: isWithin24Hours                                                 */
+/** Checks if a phembot task due time is within one day (24 hours).           */
+/**                                                                           */
+/** @param {string} timeDue  The due time of the phembot task.                */
+/**---------------------------------------------------------------------------*/
+function isWithin24Hours(timeDue) {
+    return moment(timeDue, 'DD MMM YYYY, ddd, hh:mm a').isBefore(moment().add(24, 'hour'))
+}
+
+/******************************************************************************/
+/**                                                                           */
+/** API DATA CALLS   API DATA CALLS   API DATA CALLS   API DATA CALLS   API   */
+/**                                                                           */
+/** Send and receive data to the mongoDB backend via the nodejs HTTP API.     */
+/******************************************************************************/
+
+/**---------------------------------------------------------------------------*/
+/** Function: getListMainPage                                                 */
+/** Gets the list data with a limit on the number of items returned from the  */
+/** server.                                                                   */
+/**                                                                           */
+/** @param {string} type     The type of list data to get.                    */
+/** @param {number} num      The number of list items to get or 0 for all.    */
+/** @param {boolean} notify  Whether or not to set a system notification      */
+/**                          message.                                         */
+/**---------------------------------------------------------------------------*/
+function getListMainPage(type, num, notify) {
+    /**-----------------------------------------------------------------------*/
+    /** Declare local variables:                                              */
+    /**-----------------------------------------------------------------------*/
+    var uri;
+    var xhr = new XMLHttpRequest();
+
+    /**-----------------------------------------------------------------------*/
+    /** Set the API uri if a phembot list request:                            */
+    /**-----------------------------------------------------------------------*/
+    if (type === 'phembot') {
+        uri = config.uriAPI + 'phembot/' + num;
+    } 
+
+    /**-----------------------------------------------------------------------*/
+    /** Set the API uri if a QA plan list request:                            */
+    /**-----------------------------------------------------------------------*/
+    else if (type === 'plan') {
+        uri = config.uriAPI + 'list/qa' + num;
+    } 
+    else {
+        /**-------------------------------------------------------------------*/
+        /** Set the API uri for the phembot catalog list request:             */
+        /**-------------------------------------------------------------------*/
+        uri = config.uriAPI + 'list/catalog/' + num;
+    }
+
+    /**-----------------------------------------------------------------------*/
+    /** Set up the response callback function:                                */
+    /**-----------------------------------------------------------------------*/
+    xhr.onload = function(){
+        /**-------------------------------------------------------------------*/
+        /** Get the API response data:                                        */
+        /**-------------------------------------------------------------------*/
+        var body = JSON.parse(this.responseText);
+
+        /**-------------------------------------------------------------------*/
+        /** Get an object handle to the contents of the _items object in the  */
+        /** reponse. MongoDB sends the response as an _items object so we     */
+        /** want the data inside that object:                                 */
+        /**-------------------------------------------------------------------*/
+        var data = {};
+        data[type] = body._items;
+
+        /**-------------------------------------------------------------------*/
+        /** If a phembot and task due notifications are required then check   */
+        /** if any phembots are due soon and require an OS native             */
+        /** notification message:                                             */
+        /** TODO: Won't work with limited list. Need separate API call for    */
+        /** pending phembots regardless of how many:                          */
+        /**-------------------------------------------------------------------*/
+        if (type === 'phembot' && notify) {
+            var i;
+            var arr = [];
+            arr = data.phembot;
+            for (i = 0; i < arr.length; i++) { 
+                createNotification(arr[i]);
             }
         }
-    });
-}); 
+
+        /**-------------------------------------------------------------------*/
+        /** Re-render the handlebars templates with the new object data:      */
+        /**-------------------------------------------------------------------*/
+        renderTemplate(type, data);
+    };
+
+    /**-----------------------------------------------------------------------*/
+    /** Send the API request:                                                 */
+    /**-----------------------------------------------------------------------*/
+    xhr.open('GET', uri, true);
+    xhr.send();
+}
+
+/**---------------------------------------------------------------------------*/
+/** Function: getListDetailPage                                               */
+/** Gets the list data with a limit on the number of items returned from the  */
+/** server.                                                                   */
+/**                                                                           */
+/** @param {string} name     The list name which is the same as the mongoDB   */
+/**                          collection name.                                 */
+/** @param {number} num      The number of list items to get or 0 for all.    */
+/**---------------------------------------------------------------------------*/
+function getListDetailPage(name, num) {
+    /**-----------------------------------------------------------------------*/
+    /** Declare local variables:                                              */
+    /**-----------------------------------------------------------------------*/
+    var uri;
+    var xhr = new XMLHttpRequest();
+
+    /**-----------------------------------------------------------------------*/
+    /** Set the API uri with the list name and number to get:                 */
+    /**-----------------------------------------------------------------------*/
+    var uri = config.uriAPI + 'list/' + name;// + '/' + num;
+
+    /**-----------------------------------------------------------------------*/
+    /** Set up the response callback function:                                */
+    /**-----------------------------------------------------------------------*/
+    xhr.onload = function() {
+        /**-------------------------------------------------------------------*/
+        /** Get the API response data:                                        */
+        /**-------------------------------------------------------------------*/
+        var body = JSON.parse(this.responseText);
+
+        /**-------------------------------------------------------------------*/
+        /** Get an object handle to the contents of the _items object in the  */
+        /** reponse. MongoDB sends the response as an _items object so we     */
+        /** want the data inside that object:                                 */
+        /**-------------------------------------------------------------------*/
+        var data = {};
+        data = body._items;
+        ipc.send('datatable', data);
+    };
+
+    /**-----------------------------------------------------------------------*/
+    /** Send the API request:                                                 */
+    /**-----------------------------------------------------------------------*/
+    xhr.open('GET', uri, true);
+    xhr.send();
+}
+
+
+function postAPI(type, item){
+    var uri;
+    var xhr = new XMLHttpRequest();
+
+    if (type === 'phembot') {
+        uri = config.uriAPI + 'phembot';
+    } 
+
+    else {
+        uri = config.uriAPI + 'list';
+    }
+
+    xhr.onload = function(){
+        var body = JSON.parse(this.responseText);
+    };
+
+    xhr.open('POST', uri, true);
+    xhr.send(item);
+}
 
 /*
-function animateWindow(w, num, sX, sY, fWidth, fHeight, fX, fY) {
-    var i, aX, aY, aHeight, aWidth;
+function DrawSpiral(mod) {
+    var c = document.getElementById("myCanvas");
+    var cxt = c.getContext("2d");
+    var centerX = 115;
+    var centerY = 55;
 
-    aX = sX;
-    aY = sY;
-    aHeight = 0;
-    aWidth = 0;
+    cxt.save();
+    cxt.clearRect(0, 0, c.width, c.height);
 
-//    w.setPosition(sX, sY)
-    w.setBounds({width: 0, height: 0, x: sX, y:sY});
+    cxt.beginPath();
+    cxt.moveTo(centerX, centerY);
 
-    for (i = 0; i < num; i++) {
-        aX -= (sX - fX) / num;
-        aY -= (sY - fY) / num;
-        aHeight += fHeight / num;
-        aWidth += fWidth / num;
+    var STEPS_PER_ROTATION = 60;
+    var increment = 2 * Math.PI / STEPS_PER_ROTATION;
+    var theta = increment;
 
-        w.setBounds({
-            width: Math.floor(aWidth), 
-            height: Math.floor(aHeight), 
-            x: Math.floor(aX), 
-            y:Math.floor(aY)
-        });
-
-//        sleep(50);
+    while (theta < 40 * Math.PI) {
+        var newX = centerX + theta * Math.cos(theta - mod);
+        var newY = centerY + theta * Math.sin(theta - mod);
+        cxt.lineTo(newX, newY);
+        theta = theta + increment;
     }
+    cxt.stroke();
+    cxt.restore();
 }
 
-
-
-function sleep(milliseconds) {
-    var start = new Date().getTime();
-    for (var i = 0; i < 1e7; i++) {
-        if ((new Date().getTime() - start) > milliseconds){
-            break;
-        }
-    }
-}
-
-
-function slideIn() {
-    var size = atomScreen.getPrimaryDisplay().workAreaSize;
-    var sX = size.width;
-
-    for (var i = 1; i < 351; i++) {
-        mainWindow.setPosition(sX - i, 0)
-    }
-}
-
-function slideOut() {
-    var size = atomScreen.getPrimaryDisplay().workAreaSize;
-    var sX = size.width - 350;
-
-    for (var i = 1; i < 350; i++) {
-        mainWindow.setPosition(sX + i, 0)
-    }
-}
+var counter = 10;
+    setInterval(function () {
+        DrawSpiral(counter);
+        counter += 0.275;
+    }, 10);
 */
+
+//    shell.openExternal(el.href + '&ref=list%id=' + ref.substring(6));
+
+//webview.addEventListener('dragover', function(e) {
+//  e.preventDefault();
+//});
+
+/*document.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+});*/
+
+//        data['listURI'] = 'file:///home/dpaspa/Dropbox/Business/ipoogi/development/electron/table.html';
+//        data['website'] = config.website;
+//
+//        var socket = new io.Socket();

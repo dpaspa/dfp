@@ -1,44 +1,22 @@
 <!doctype html>
 <html>
-  <head>
-    <title>table</title>
+<head>
+    <title>Master Data List Table</title>
     <link rel="stylesheet" type="text/css" href="table-dark.css">
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="main.css">
 
     <script type="text/javascript" src="datatables/jQuery-2.1.4/jquery-2.1.4.min.js"></script>
     <script type="text/javascript" src="datatables/datatables.min.js"></script>
-
-    <script type="text/javascript">
-        $(document).ready(function() {
-            var util = require('./util');
-            var uriParms = util.uriParameters();
-            console.log('\n\n display ' + uriParms.type + ' with id ' + uriParms.id + '\n\n');
-
-            $.ajax({
-                "url": './arrays.txt',
-                "success": function (json) {
-                    $('#dtable').dataTable(json);
-                },
-                "dataType": "json"
-            });
-
-//            var atable = $('#dtable').DataTable();
-            $('#dtable tbody').on( 'click', 'tr', function () {
-                if ( $(this).hasClass('selected') ) {
-                    $(this).removeClass('selected');
-                }
-                else {
-                    atable.$('tr.selected').removeClass('selected');
-                    $(this).addClass('selected');
-                }
-            });
-        });
-      </script>
-  </head>
-  <body>
+    <script type="text/javascript" src="./table.js"></script>
+</head>
+<body>
     <div class="tableContent">
-      <table id="dtable" class="display" cellspacing="0" width="95%">
-      </table>
+        <div class="close-window">
+            <button onclick="windowClose()">Close</button>
+        </div>
+        <div class="table-data">
+            <table id="example" class="display" cellspacing="0" width="95%"></table>
+        </div>
     </div>
-  </body>
+</body>
 </html>

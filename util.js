@@ -1,6 +1,4 @@
-function uriParameters() {
-  // This function is anonymous, is executed immediately and 
-  // the return value is assigned to QueryString!
+/*function uriParameters() {
   var query_string = {};
   var query = window.location.search.substring(1);
   var vars = query.split("&");
@@ -20,5 +18,20 @@ function uriParameters() {
   } 
     return query_string;
 }
+*/
 
-exports.uriParameters = uriParameters;
+/*        var chunkKey = getParameterByName('search');
+        document.getElementById('search-content').innerHTML = 'Search results for ' + chunkKey;
+
+        function getParameterByName(name) {
+            name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+            var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+            return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        }
+*/
+function getURIParameter(name) {
+  return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null
+}
+
+exports.getURIParameter = getURIParameter;
