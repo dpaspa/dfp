@@ -1,6 +1,5 @@
-# contributing to webuild menubar
+# contributing to desktop focal point
 
-:+1::snowflake: thanks for taking the time to contribute! :sunny::gift_heart:
 
 1. Fork this project
 - Create a new feature/patch branch
@@ -28,4 +27,3 @@
       - :arrow_down: `:arrow_down:` when downgrading `dependencies`
       - :shirt: `:shirt:` when removing `linter` warnings
 - [Pull request](https://help.github.com/articles/using-pull-requests) using the new feature/patch branch
-- Ensure the [Travis build](https://travis-ci.org/webuildsg/webuild) passes

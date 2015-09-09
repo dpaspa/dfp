@@ -19,9 +19,6 @@
         <div class="menu-item" id="act-label">
           <a href="#" class="menu-btn">Act</a>
         </div>
-        <div class="menu-item" id="list-label">
-          <a href="#" class="menu-btn">List</a>
-        </div>
       </div>
       <div class="menu-top-right">
         <div class="menu-item" id="user-label">
@@ -74,7 +71,7 @@
 
       <div id="list-content">
         <h2>Master Data Lists</h2>
-        <div id="result-catalog-list">
+        <div id="result-master">
           <div class="loader">Loading...
           </div>
         </div>
@@ -116,6 +113,9 @@
 
     <div class="menu-bottom">
       <div class="menu-bottom-left">
+        <div class="menu-item" id="list-label">
+          <a href="#" class="menu-btn">List</a>
+        </div>
         <div class="menu-item" id="chat-label">
           <a href="#" class="menu-btn">Chat</a>
         </div>
@@ -134,15 +134,15 @@
     </div>
   </div>
 
-  <script id="template-catalog-list" type="text/x-handlebars-template">
+  <script id="template-master" type="text/x-handlebars-template">
     <ul class="list">
-      {{#catalog-list}}
+      {{#master}}
       <li>
-        <p class="info"><a href="" target="catalog-list_{{Name}}">{{Title}}</a></p>
-	    <p class="desc">{{Description}}</p>
-	    <p><span class="spacing">★ {{stargazers_count}}</span><span class="spacing">{{language}}</span></p>
+        <p class="info"><a href="" target="master_{{name}}">{{title}}</a></p>
+	    <p class="desc">{{title}}</p>
+	    <p><span class="spacing">★ {{stargazers_count}}</span><span class="spacing">{{ref}}</span></p>
       </li>
-      {{/catalog-list}}
+      {{/master}}
     </ul>
   </script>
 
@@ -150,9 +150,9 @@
     <ul class="list">
       {{#phembot}}
       <li class="item-container">
-        <p class="info"><a href="" target="phembot_{{_id}}">{{Doc}}</a></p>
-	    <p class="desc">by <strong>{{_id}}</strong> on <strong>{{formatted_time}}</strong></p>
-	    <p class="location">{{location}}</p>
+        <p class="info"><a href="" target="phembot_{{_id}}">{{title}}</a></p>
+	    <p class="desc">by <strong>{{type}}</strong> on <strong>{{status}}</strong></p>
+	    <p class="location">{{ref}}</p>
       </li>
       {{/phembot}}
     </ul>
@@ -162,9 +162,9 @@
     <ul class="list">
       {{#plan}}
       <li>
-        <p class="info"><a href="" target="plan_{{_id}}">{{Title}}</a></p>
-	    <p class="desc">{{Description}}</p>
-	    <p><span class="spacing">★ {{stargazers_count}}</span><span class="spacing">{{language}}</span></p>
+        <p class="info"><a href="" target="plan_{{_id}}">{{title}}</a></p>
+	    <p class="desc">{{name}}</>
+	    <p><span class="spacing">★ {{ref}}</span><span class="spacing">{{title}}</span></p>
       </li>
       {{/plan}}
     </ul>

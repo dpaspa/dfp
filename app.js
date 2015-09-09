@@ -69,9 +69,9 @@ app.on('ready', function() {
     /** Create the main browser window for the application:                   */
     /**-----------------------------------------------------------------------*/
     mainWindow = new BrowserWindow({
-        title: 'Desktop Focal Point', 
-        width: 350, 
-        height: size.height, 
+        title: 'Desktop Focal Point',
+        width: 350,
+        height: size.height,
         "skip-taskbar": true,
         "always-on-top": true,
         frame: false
@@ -132,10 +132,11 @@ app.on('ready', function() {
     var finalY = 100;
 
     /**-----------------------------------------------------------------------*/
-    /** Instantiate the windows but make don't make them visible:             */
+    /** Instantiate the windows but make don't make them visible.             */
+    /** Create the calendar window:                                           */
     /**-----------------------------------------------------------------------*/
     var calendarWindow = new BrowserWindow({
-        title: 'Desktop Focal Point Calendar', 
+        title: 'Desktop Focal Point Calendar',
         width: finalWidth,
         height: finalHeight,
         "skip-taskbar": true,
@@ -144,8 +145,11 @@ app.on('ready', function() {
         show: false
     });
 
+    /**-----------------------------------------------------------------------*/
+    /** Create the dashboard window:                                          */
+    /**-----------------------------------------------------------------------*/
     var dashboardWindow = new BrowserWindow({
-        title: 'Desktop Focal Point Dashboard', 
+        title: 'Desktop Focal Point Dashboard',
         width: finalWidth,
         height: finalHeight,
         "skip-taskbar": true,
@@ -154,8 +158,11 @@ app.on('ready', function() {
         show: false
     });
 
+    /**-----------------------------------------------------------------------*/
+    /** Create the learning window:                                           */
+    /**-----------------------------------------------------------------------*/
     var learningWindow = new BrowserWindow({
-        title: 'Desktop Focal Point Learning Chunks', 
+        title: 'Desktop Focal Point Learning Chunks',
         width: finalWidth,
         height: finalHeight,
         "skip-taskbar": true,
@@ -164,8 +171,11 @@ app.on('ready', function() {
         show: false
     });
 
+    /**-----------------------------------------------------------------------*/
+    /** Create the master data list table window:                             */
+    /**-----------------------------------------------------------------------*/
     var tableWindow = new BrowserWindow({
-        title: 'Desktop Focal Point Master Data List', 
+        title: 'Desktop Focal Point Master Data List',
         width: finalWidth,
         height: finalHeight,
         "skip-taskbar": true,
@@ -255,9 +265,9 @@ app.on('ready', function() {
         }
         else {
             calendarWindow.show();
-        } 
+        }
     });
-    
+
     /**-----------------------------------------------------------------------*/
     /** Process the calendar window close button click event:                 */
     /**-----------------------------------------------------------------------*/
@@ -265,7 +275,7 @@ app.on('ready', function() {
         calendarWindow.hide();
         mainWindow.webContents.send('calendarClose');
     });
-    
+
     /**-----------------------------------------------------------------------*/
     /** Process the dashboard label click event:                              */
     /**-----------------------------------------------------------------------*/
@@ -276,9 +286,9 @@ app.on('ready', function() {
         }
         else {
             dashboardWindow.show();
-        } 
+        }
     });
-    
+
     /**-----------------------------------------------------------------------*/
     /** Process the dashboard window close button click event:                */
     /**-----------------------------------------------------------------------*/
@@ -286,7 +296,7 @@ app.on('ready', function() {
         dashboardWindow.hide();
         mainWindow.webContents.send('dashboardClose');
     });
-    
+
     /**-----------------------------------------------------------------------*/
     /** Process the search input box enter key event:                         */
     /**-----------------------------------------------------------------------*/
@@ -294,7 +304,7 @@ app.on('ready', function() {
         learningWindow.loadUrl('file://' + __dirname + '/learning.html?search=' + arg);
         learningWindow.show();
     });
-    
+
     /**-----------------------------------------------------------------------*/
     /** Process the master data list item click event:                        */
     /**-----------------------------------------------------------------------*/
@@ -308,30 +318,34 @@ app.on('ready', function() {
                 tableWindow.webContents.reload();
                 tableWindow.show();
             }
-        }); 
+        });
     });
-    
+
     /**-----------------------------------------------------------------------*/
     /** Process the master data table window close button click event:        */
     /**-----------------------------------------------------------------------*/
     ipc.on('datatableClose', function(arg) {
         tableWindow.hide();
     });
-    
+
     /**-----------------------------------------------------------------------*/
     /** Process the learning window close button click event:                 */
     /**-----------------------------------------------------------------------*/
     ipc.on('learningClose', function(arg) {
         learningWindow.hide();
     });
-    
+
     /**-----------------------------------------------------------------------*/
     /** Process an OS shell command execution event:                          */
     /**-----------------------------------------------------------------------*/
     ipc.on('osShell', function(event, arg) {
         var effector = shell.exec(arg, {async:true}).output;
     });
-}); 
+
+    mb.on('click', function () {
+        console.log('menubar clicked!');
+    });
+});
 
 /******************************************************************************/
 /**                                                                           */
@@ -350,10 +364,5 @@ var mb = menubar({
     icon: path.join(__dirname, 'IconTemplate.png')
 });
 
-console.log(__dirname + '/menuIcon.png');
 mb.on('ready', function ready () {
-    mb.on('click', function () {
-        console.log('menubar clicked!');
-    });
 });
-

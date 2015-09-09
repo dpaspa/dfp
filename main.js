@@ -22,6 +22,7 @@ var drop = require('./drop');
 /**---------------------------------------------------------------------------*/
 var path = require('path');
 var ipc = require('ipc');
+var http = require('http');
 var remote = require('remote');
 var notifier = require('node-notifier');
 var shell = require('shell');
@@ -45,7 +46,7 @@ var lastdynamic;
 /** Get the phembot and master list catalog data for the main page:           */
 /******************************************************************************/
 getListMainPage('phembot', 6, true);
-getListMainPage('catalog-list', 4, false);
+getListMainPage('master', 4, false);
 getListMainPage('plan', 4, false);
 
 
@@ -129,7 +130,7 @@ document.body.addEventListener('click', function(e){
     /** Check if this is from the list tab for the catalog of master data     */
     /** lists:                                                                */
     /**-----------------------------------------------------------------------*/
-    if (ref.substring(0, delimChar) == 'catalog-list') {
+    if (ref.substring(0, delimChar) == 'master') {
         /**-------------------------------------------------------------------*/
         /** Get the catalog list name and the full list data from the backend */
         /** API. Send it to the renderer side:                                */
@@ -137,7 +138,7 @@ document.body.addEventListener('click', function(e){
         var name = ref.substring(delimChar + 1);
 //        var data = getListDetailPage(name, 0);
         getListDetailPage(name, 0);
-    } 
+    }
 
     /**-----------------------------------------------------------------------*/
     /** Check if this is from the phembot task list:                          */
@@ -325,12 +326,12 @@ document.getElementById('search-key').addEventListener('keydown', function(e) {
 document.getElementById('user-label').addEventListener('click', function() {
     setDisplayContext('user');
 /*    var el = document.getElementById("user-label")
-    dynamics.animate(el, 
+    dynamics.animate(el,
         {
         translateX: -250,
         scale: 2,
         opacity: 0.5
-        }, 
+        },
         {
         type: dynamics.spring,
         frequency: 200,
@@ -533,7 +534,7 @@ rule.second = [0, 30];
 /**---------------------------------------------------------------------------*/
 schedule.scheduleJob(rule, function(){
     getListMainPage('phembot', 6, true);
-    getListMainPage('catalog-list', 4, false);
+    getListMainPage('master', 4, false);
     getListMainPage('plan', 4, false);
 });
 
@@ -556,15 +557,15 @@ watch.watchTree(config.pathFiles, function (f, curr, prev) {
         /**-------------------------------------------------------------------*/
         /** Nothing more to do:                                               */
         /**-------------------------------------------------------------------*/
-    } 
-    
+    }
+
     /**-----------------------------------------------------------------------*/
     /** Process any new file:                                                 */
     /**-----------------------------------------------------------------------*/
     else if (prev === null) {
         processFIle = true;
-    } 
-    
+    }
+
     /**-----------------------------------------------------------------------*/
     /** Check if the file was removed:                                        */
     /**-----------------------------------------------------------------------*/
@@ -572,7 +573,7 @@ watch.watchTree(config.pathFiles, function (f, curr, prev) {
         /**-------------------------------------------------------------------*/
         /** Just forget about it:                                             */
         /**-------------------------------------------------------------------*/
-    } 
+    }
     else {
         /**-------------------------------------------------------------------*/
         /** The file was changed in some way. Better process it:              */
@@ -653,73 +654,83 @@ function getListMainPage(type, num, notify) {
     /**-----------------------------------------------------------------------*/
     /** Declare local variables:                                              */
     /**-----------------------------------------------------------------------*/
-    var uri;
-    var xhr = new XMLHttpRequest();
+    var uri = '';
 
     /**-----------------------------------------------------------------------*/
     /** Set the API uri if a phembot list request:                            */
     /**-----------------------------------------------------------------------*/
     if (type === 'phembot') {
-        uri = config.uriAPI + 'phembot/' + num;
-    } 
+        uri = '/listPhembots/' + num;
+    }
 
     /**-----------------------------------------------------------------------*/
     /** Set the API uri if a QA plan list request:                            */
     /**-----------------------------------------------------------------------*/
     else if (type === 'plan') {
-        uri = config.uriAPI + 'list/qa' + num;
-    } 
+        uri = '/planQualityAssurance/' + num;
+    }
     else {
         /**-------------------------------------------------------------------*/
         /** Set the API uri for the phembot catalog list request:             */
         /**-------------------------------------------------------------------*/
-        uri = config.uriAPI + 'list/catalog/' + num;
+        uri = '/catalogMasters/' + num;
     }
 
     /**-----------------------------------------------------------------------*/
-    /** Set up the response callback function:                                */
+    /** Set the http options to be used by the request:                       */
     /**-----------------------------------------------------------------------*/
-    xhr.onload = function(){
-        /**-------------------------------------------------------------------*/
-        /** Get the API response data:                                        */
-        /**-------------------------------------------------------------------*/
-        var body = JSON.parse(this.responseText);
-
-        /**-------------------------------------------------------------------*/
-        /** Get an object handle to the contents of the _items object in the  */
-        /** reponse. MongoDB sends the response as an _items object so we     */
-        /** want the data inside that object:                                 */
-        /**-------------------------------------------------------------------*/
-        var data = {};
-        data[type] = body._items;
-
-        /**-------------------------------------------------------------------*/
-        /** If a phembot and task due notifications are required then check   */
-        /** if any phembots are due soon and require an OS native             */
-        /** notification message:                                             */
-        /** TODO: Won't work with limited list. Need separate API call for    */
-        /** pending phembots regardless of how many:                          */
-        /**-------------------------------------------------------------------*/
-        if (type === 'phembot' && notify) {
-            var i;
-            var arr = [];
-            arr = data.phembot;
-            for (i = 0; i < arr.length; i++) { 
-                createNotification(arr[i]);
-            }
-        }
-
-        /**-------------------------------------------------------------------*/
-        /** Re-render the handlebars templates with the new object data:      */
-        /**-------------------------------------------------------------------*/
-        renderTemplate(type, data);
+    var options = {
+       host: config.host,
+       port: config.port,
+       path: uri
     };
 
     /**-----------------------------------------------------------------------*/
-    /** Send the API request:                                                 */
+    /** Define the callback function used to deal with the response:          */
     /**-----------------------------------------------------------------------*/
-    xhr.open('GET', uri, true);
-    xhr.send();
+    var callback = function (response) {
+        /**-------------------------------------------------------------------*/
+        /** Continuously update the stream with data as it arrives:           */
+        /**-------------------------------------------------------------------*/
+        var body = '';
+        response.on('data', function(data) {
+            body += data;
+        });
+
+        /**-------------------------------------------------------------------*/
+        /** The data has been received completely:                            */
+        /**-------------------------------------------------------------------*/
+        response.on('end', function() {
+            /**---------------------------------------------------------------*/
+            /** If a phembot and task due notifications are required then     */
+            /** check if any phembots are due soon and require an OS native   */
+            /** notification message:                                         */
+            /** TODO: Won't work with limited list. Need separate API call    */
+            /** for pending phembots regardless of how many:                  */
+            /**---------------------------------------------------------------*/
+            var data = {};
+            data[type] = JSON.parse(body);
+            var arr = [];
+            arr = Object.keys(data).map(function(k) { return data[k] });
+            if (type === 'phembot' && notify) {
+                var i;
+                for (i = 0; i < arr.length; i++) {
+                createNotification(arr[i]);
+                }
+            }
+
+            /**---------------------------------------------------------------*/
+            /** Re-render the handlebars templates with the new object data:  */
+            /**---------------------------------------------------------------*/
+            renderTemplate(type, data);
+        });
+    }
+
+    /**-----------------------------------------------------------------------*/
+    /** Make a request to the server:                                         */
+    /**-----------------------------------------------------------------------*/
+    var req = http.request (options, callback);
+    req.end();
 }
 
 /**---------------------------------------------------------------------------*/
@@ -735,38 +746,61 @@ function getListDetailPage(name, num) {
     /**-----------------------------------------------------------------------*/
     /** Declare local variables:                                              */
     /**-----------------------------------------------------------------------*/
-    var uri;
-    var xhr = new XMLHttpRequest();
+    var uri = '';
 
     /**-----------------------------------------------------------------------*/
     /** Set the API uri with the list name and number to get:                 */
     /**-----------------------------------------------------------------------*/
-    var uri = config.uriAPI + 'list/' + name;// + '/' + num;
+    uri = '/listMasters/' + name;// + '/' + num;
 
     /**-----------------------------------------------------------------------*/
-    /** Set up the response callback function:                                */
+    /** Set the http options to be used by the request:                       */
     /**-----------------------------------------------------------------------*/
-    xhr.onload = function() {
-        /**-------------------------------------------------------------------*/
-        /** Get the API response data:                                        */
-        /**-------------------------------------------------------------------*/
-        var body = JSON.parse(this.responseText);
-
-        /**-------------------------------------------------------------------*/
-        /** Get an object handle to the contents of the _items object in the  */
-        /** reponse. MongoDB sends the response as an _items object so we     */
-        /** want the data inside that object:                                 */
-        /**-------------------------------------------------------------------*/
-        var data = {};
-        data = body._items;
-        ipc.send('datatable', data);
+    var options = {
+       host: config.host,
+       port: config.port,
+       path: uri
     };
 
     /**-----------------------------------------------------------------------*/
-    /** Send the API request:                                                 */
+    /** Define the callback function used to deal with the response:          */
     /**-----------------------------------------------------------------------*/
-    xhr.open('GET', uri, true);
-    xhr.send();
+    var callback = function (response) {
+        /**-------------------------------------------------------------------*/
+        /** Continuously update the stream with data as it arrives:           */
+        /**-------------------------------------------------------------------*/
+        var body = '';
+        response.on('data', function(data) {
+            body += data;
+        });
+
+        /**-------------------------------------------------------------------*/
+        /** The data has been received completely:                            */
+        /**-------------------------------------------------------------------*/
+        response.on('end', function() {
+            /**---------------------------------------------------------------*/
+            /** If a phembot and task due notifications are required then     */
+            /** check if any phembots are due soon and require an OS native   */
+            /** notification message:                                         */
+            /** TODO: Won't work with limited list. Need separate API call    */
+            /** for pending phembots regardless of how many:                  */
+            /**---------------------------------------------------------------*/
+//            var data = {};
+//            data[type] = JSON.parse(body);
+            var data = JSON.parse(body);
+
+            /**---------------------------------------------------------------*/
+            /** Display the detail list form:                                 */
+            /**---------------------------------------------------------------*/
+            ipc.send('datatable', data);
+        });
+    }
+
+    /**-----------------------------------------------------------------------*/
+    /** Make a request to the server:                                         */
+    /**-----------------------------------------------------------------------*/
+    var req = http.request (options, callback);
+    req.end();
 }
 
 
@@ -776,7 +810,7 @@ function postAPI(type, item){
 
     if (type === 'phembot') {
         uri = config.uriAPI + 'phembot';
-    } 
+    }
 
     else {
         uri = config.uriAPI + 'list';
@@ -839,3 +873,30 @@ var counter = 10;
 //        data['website'] = config.website;
 //
 //        var socket = new io.Socket();
+/*
+var http = require('http');
+
+// Options to be used by request 
+var options = {
+   host: 'localhost',
+   port: '8081',
+   path: '/index.htm'
+};
+
+// Callback function is used to deal with response
+var callback = function(response){
+   // Continuously update stream with data
+   var body = '';
+   response.on('data', function(data) {
+      body += data;
+   });
+
+   response.on('end', function() {
+      // Data received completely.
+      console.log(body);
+   });
+}
+// Make a request to the server
+var req = http.request(options, callback);
+req.end();
+*/

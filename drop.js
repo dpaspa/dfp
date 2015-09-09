@@ -76,8 +76,8 @@ function processDrop(e) {
                         /** process the phembot file:                         */
                         /**---------------------------------------------------*/
                         alert(JSON.stringify(result));
-                        var shellCommand = config.pathWord + '\ /q\ /x\ /l' + 
-                                           config.pathEffector + '\ ' + 
+                        var shellCommand = config.pathWord + '\ /q\ /x\ /l' +
+                                           config.pathEffector + '\ ' +
                                            config.pathPhembots + files[i].path;
                         ipc.send('osShell', shellCommand);
                     });

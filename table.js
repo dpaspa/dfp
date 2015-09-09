@@ -42,6 +42,9 @@ $(document).ready(function() {
         "dataType": "json"
     });
 
+    $('#example').on('click', 'tr', function () {
+        console.log(this.cells[0].innerHTML);
+    } );
 
     /**-----------------------------------------------------------------------*/
     /** Set up the list item selection click event:                           */
