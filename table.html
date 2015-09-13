@@ -5,15 +5,18 @@
     <link rel="stylesheet" type="text/css" href="table-dark.css">
     <link rel="stylesheet" href="main.css">
 
-    <script type="text/javascript" src="datatables/jQuery-2.1.4/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="lib/jquery-2.1.4.min.js"></script>
+    <!--script type="text/javascript" src="datatables/jQuery-2.1.4/jquery-2.1.4.min.js"></script-->
     <script type="text/javascript" src="datatables/datatables.min.js"></script>
     <script type="text/javascript" src="./table.js"></script>
 </head>
 <body>
-    <div class="tableContent">
+    <div class="top-menu-bar">
         <div class="close-window">
             <button onclick="windowClose()">Close</button>
         </div>
+    </div>
+    <div class="tableContent">
         <div class="table-data">
             <table id="example" class="display" cellspacing="0" width="95%"></table>
         </div>

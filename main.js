@@ -20,11 +20,12 @@ var drop = require('./drop');
 /**---------------------------------------------------------------------------*/
 /** Declare module level variables included from other node packages:         */
 /**---------------------------------------------------------------------------*/
-var path = require('path');
 var ipc = require('ipc');
 var http = require('http');
 var remote = require('remote');
 var notifier = require('node-notifier');
+//var Handlebars = require('handlebars');
+//var Handlebars = require('lib/handlebars');
 var shell = require('shell');
 var schedule = require('node-schedule');
 var moment = require('moment-timezone');
@@ -38,6 +39,7 @@ var io = require('socket.io');
 /** Declare global program variables:                                         */
 /**---------------------------------------------------------------------------*/
 var lastdynamic;
+var flipped = false;
 
 /******************************************************************************/
 /**                                                                           */
@@ -45,9 +47,13 @@ var lastdynamic;
 /**                                                                           */
 /** Get the phembot and master list catalog data for the main page:           */
 /******************************************************************************/
-getListMainPage('phembot', 6, true);
-getListMainPage('master', 4, false);
-getListMainPage('plan', 4, false);
+getListMainPage('cc', 2, true);
+getListMainPage('check', 5, true);
+getListMainPage('do', 5, true);
+getListMainPage('list-master', 3, false);
+getListMainPage('list-working', 3, false);
+getListMainPage('ofi', 2, true);
+getListMainPage('plan', 7, false);
 
 
 /******************************************************************************/
@@ -88,6 +94,7 @@ function renderTemplate(type, data) {
 /**---------------------------------------------------------------------------*/
 ipc.on('calendarClose', function() {
     document.getElementById("cal-label").style.backgroundColor = '#1f2023';
+    document.getElementById("cal-label").firstElementChild.style.color = '#7d7f80';
 });
 
 /**---------------------------------------------------------------------------*/
@@ -95,6 +102,7 @@ ipc.on('calendarClose', function() {
 /**---------------------------------------------------------------------------*/
 ipc.on('dashboardClose', function() {
     document.getElementById("dash-label").style.backgroundColor = '#1f2023';
+    document.getElementById("dash-label").firstElementChild.style.color = '#7d7f80';
 });
 
 /**---------------------------------------------------------------------------*/
@@ -130,7 +138,7 @@ document.body.addEventListener('click', function(e){
     /** Check if this is from the list tab for the catalog of master data     */
     /** lists:                                                                */
     /**-----------------------------------------------------------------------*/
-    if (ref.substring(0, delimChar) == 'master') {
+    if (ref.substring(0, delimChar) == 'list') {
         /**-------------------------------------------------------------------*/
         /** Get the catalog list name and the full list data from the backend */
         /** API. Send it to the renderer side:                                */
@@ -152,6 +160,7 @@ document.body.addEventListener('click', function(e){
         /**-------------------------------------------------------------------*/
         /** What to do:                                                       */
         /**-------------------------------------------------------------------*/
+        ipc.send('dock');
     }
 });
 
@@ -171,6 +180,7 @@ document.getElementById('cal-label').addEventListener('click', function() {
     /** Toggle the label display and send the event to the renderer process:  */
     /**-----------------------------------------------------------------------*/
     document.getElementById("cal-label").style.backgroundColor = '#828282';
+    document.getElementById("cal-label").firstElementChild.style.color = '#000000';
     ipc.send('calendar');
 })
 
@@ -229,6 +239,7 @@ document.getElementById('dash-label').addEventListener('click', function() {
     /** Toggle the label display and send the event to the renderer process:  */
     /**-----------------------------------------------------------------------*/
     document.getElementById("dash-label").style.backgroundColor = '#828282';
+    document.getElementById("dash-label").firstElementChild.style.color = '#000000';
     ipc.send('dashboard');
 })
 
@@ -306,8 +317,16 @@ document.getElementById('plan-label').addEventListener('click', function() {
 /** Preferences icon event. Used to display the settings screen:              */
 /**---------------------------------------------------------------------------*/
 document.getElementById('prefs-label').addEventListener('click', function() {
-    setDisplayContext('prefs');
-})
+    /**-----------------------------------------------------------------------*/
+    /** Re-render the handlebars templates with the new object data:          */
+    /**-----------------------------------------------------------------------*/
+/*    var data = JSON.stringify(config);
+    console.log(data); 
+    renderTemplate('prefs', config);
+    setDisplayContext('prefs'); */
+    ipc.send('prefs');
+    setDisplayContext('do');
+});
 
 /**---------------------------------------------------------------------------*/
 /** Search box key press event. This is used to display learning chunks which */
@@ -320,11 +339,29 @@ document.getElementById('search-key').addEventListener('keydown', function(e) {
     }
 })
 
+document.querySelector( "#nav-toggle" ).addEventListener( "click", function() {
+    this.classList.toggle( "active" );
+    flipPanel();
+});
+
+function flipPanel() {
+    if (flipped) {
+        document.getElementById('flip-menu').style.transform = ("rotateY(0deg)");
+    }
+    else {
+        document.getElementById('flip-menu').style.transform = ("rotateY(180deg)");
+    }
+    flipped = !flipped;
+}
+
 /**---------------------------------------------------------------------------*/
 /** User icon click event. Used to display the user profile and login details.*/
 /**---------------------------------------------------------------------------*/
 document.getElementById('user-label').addEventListener('click', function() {
-    setDisplayContext('user');
+    ipc.send('user');
+    setDisplayContext('do');
+});
+
 /*    var el = document.getElementById("user-label")
     dynamics.animate(el,
         {
@@ -341,15 +378,12 @@ document.getElementById('user-label').addEventListener('click', function() {
     )
 */
 //    ipc.send('event', 'user');
-});
 
 /**---------------------------------------------------------------------------*/
-/** Application quit icon click event to close the application:               */
+/** Application quit icon click event to close the application by sending the */
+/** event to the renderer process to close down gracefully:                   */
 /**---------------------------------------------------------------------------*/
-document.getElementById('quit').addEventListener('click', function() {
-    /**-----------------------------------------------------------------------*/
-    /** Send the event to the renderer process to close down gracefully:      */
-    /**-----------------------------------------------------------------------*/
+document.getElementById('quit-label').addEventListener('click', function() {
     ipc.send('quit');
 })
 
@@ -367,6 +401,7 @@ function setDisplayContext(context) {
     if (context === 'dynamic-chat') {
         lastdynamic = 'chat';
         document.getElementById("chat-label").style.backgroundColor = '#828282';
+        document.getElementById("chat-label").firstElementChild.style.color = '#000000';
         document.getElementById('chat').style.display = 'block';
         document.getElementById('dyno').style.display = 'none';
     }
@@ -377,8 +412,15 @@ function setDisplayContext(context) {
     else if (context === 'dynamic-dyno') {
         lastdynamic = 'dyno';
         document.getElementById("chat-label").style.backgroundColor = '#1f2023';
+        document.getElementById("chat-label").firstElementChild.style.color = '#7d7f80';
         document.getElementById('chat').style.display = 'none';
         document.getElementById('dyno').style.display = 'block';
+    }
+
+    /**-----------------------------------------------------------------------*/
+    /** Close the chat box and show the dyno if required:                     */
+    /**-----------------------------------------------------------------------*/
+    else if (context === 'dyno') {
     }
     else {
         /**-------------------------------------------------------------------*/
@@ -389,8 +431,14 @@ function setDisplayContext(context) {
         document.getElementById("do-label").style.backgroundColor = '#1f2023';
         document.getElementById("list-label").style.backgroundColor = '#1f2023';
         document.getElementById("plan-label").style.backgroundColor = '#1f2023';
-        document.getElementById("prefs-label").style.backgroundColor = '#1f2023';
-        document.getElementById("user-label").style.backgroundColor = '#1f2023';
+
+        document.getElementById("act-label").firstElementChild.style.color = '#7d7f80';
+        document.getElementById("check-label").firstElementChild.style.color = '#7d7f80';
+        document.getElementById("do-label").firstElementChild.style.color = '#7d7f80';
+        document.getElementById("list-label").firstElementChild.style.color = '#7d7f80';
+        document.getElementById("plan-label").firstElementChild.style.color = '#7d7f80';
+//        document.getElementById("prefs-label").style.backgroundColor = '#1f2023';
+//        document.getElementById("user-label").style.backgroundColor = '#1f2023';
 
         /**-------------------------------------------------------------------*/
         /** Hide everything in the top part as not just a dyno change:        */
@@ -400,26 +448,22 @@ function setDisplayContext(context) {
         document.getElementById('do-content').style.display = 'none';
         document.getElementById('list-content').style.display = 'none';
         document.getElementById('plan-content').style.display = 'none';
-        document.getElementById('prefs-content').style.display = 'none';
+//        document.getElementById('prefs-content').style.display = 'none';
         document.getElementById('searcher').style.display = 'none';
-        document.getElementById('user-content').style.display = 'none';
-
-        /**-------------------------------------------------------------------*/
-        /** Hide the quit button. It is only shown on the user screen:        */
-        /**-------------------------------------------------------------------*/
-        document.getElementById('quit').style.display = 'none';
+//        document.getElementById('user-content').style.display = 'none';
     }
 
     /**-----------------------------------------------------------------------*/
     /** Process according to display context:                                 */
     /**-----------------------------------------------------------------------*/
-    switch(context) {
+    switch (context) {
         /**-------------------------------------------------------------------*/
         /** Improvement selection options when "Act" label is clicked:        */
         /**-------------------------------------------------------------------*/
-        case('act'):
+        case ('act'):
             checkdynamic = true;
             document.getElementById("act-label").style.backgroundColor = '#828282';
+            document.getElementById("act-label").firstElementChild.style.color = '#000000';
             document.getElementById('act-content').style.display = 'block';
             document.getElementById('searcher').style.display = 'block';
             break;
@@ -427,9 +471,10 @@ function setDisplayContext(context) {
         /**-------------------------------------------------------------------*/
         /** Check selection options when "Check" label is clicked:            */
         /**-------------------------------------------------------------------*/
-        case('check'):
+        case ('check'):
             checkdynamic = true;
             document.getElementById("check-label").style.backgroundColor = '#828282';
+            document.getElementById("check-label").firstElementChild.style.color = '#000000';
             document.getElementById('check-content').style.display = 'block';
             document.getElementById('searcher').style.display = 'block';
             break;
@@ -437,9 +482,10 @@ function setDisplayContext(context) {
         /**-------------------------------------------------------------------*/
         /** Phembot task list when "Task" label is clicked:                   */
         /**-------------------------------------------------------------------*/
-        case('do'):
+        case ('do'):
             checkdynamic = true;
             document.getElementById("do-label").style.backgroundColor = '#828282';
+            document.getElementById("do-label").firstElementChild.style.color = '#000000';
             document.getElementById('do-content').style.display = 'block';
             document.getElementById('searcher').style.display = 'block';
             break;
@@ -447,26 +493,31 @@ function setDisplayContext(context) {
         /**-------------------------------------------------------------------*/
         /** Reset the dynamic display dyno when it is clicked:                */
         /**-------------------------------------------------------------------*/
-        case('dyno'):
+/*
+        case ('dyno'):
             document.getElementById('dyno').style.backgroundImage = 'url(./images/spiral-static.png)';
             break;
+*/
 
         /**-------------------------------------------------------------------*/
         /** Catalog of master data lists when "List" label is clicked:        */
         /**-------------------------------------------------------------------*/
-        case('list'):
+        case ('list'):
             checkdynamic = true;
             document.getElementById("list-label").style.backgroundColor = '#828282';
+            document.getElementById("list-label").firstElementChild.style.color = '#000000';
             document.getElementById('list-content').style.display = 'block';
             document.getElementById('searcher').style.display = 'block';
             break;
 
         /**-------------------------------------------------------------------*/
-        /** Catalog of master data lists when "List" label is clicked:        */
+        /** List of Quality Controls when the Quality Assurance Plan label    */
+        /** is clicked:                                                       */
         /**-------------------------------------------------------------------*/
-        case('plan'):
+        case ('plan'):
             checkdynamic = true;
             document.getElementById("plan-label").style.backgroundColor = '#828282';
+            document.getElementById("plan-label").firstElementChild.style.color = '#000000';
             document.getElementById('plan-content').style.display = 'block';
             document.getElementById('searcher').style.display = 'block';
             break;
@@ -474,25 +525,33 @@ function setDisplayContext(context) {
         /**-------------------------------------------------------------------*/
         /** Preferences screen when the settings icon is clicked:             */
         /**-------------------------------------------------------------------*/
-        case('prefs'):
+/*
+        case ('prefs'):
+            flipPanel();
             checkdynamic = false;
-            document.getElementById("prefs-label").style.backgroundColor = '#828282';
+//            document.getElementById("prefs-label").style.backgroundColor = '#828282';
             document.getElementById('prefs-content').style.display = 'block';
             document.getElementById('chat').style.display = 'none';
             document.getElementById('dyno').style.display = 'none';
+            document.querySelector( "#nav-toggle" ).classList.toggle( "active" );
             break;
+*/
 
         /**-------------------------------------------------------------------*/
-        /** Catalog of master data lists when "List" label is clicked:        */
+        /** User profile page when the "User" label is clicked:               */
         /**-------------------------------------------------------------------*/
-        case('user'):
+/*
+        case ('user'):
+            flipPanel();
             checkdynamic = false;
-            document.getElementById("user-label").style.backgroundColor = '#828282';
+//            document.getElementById("user-label").style.backgroundColor = '#828282';
             document.getElementById('user-content').style.display = 'block';
             document.getElementById('chat').style.display = 'none';
             document.getElementById('dyno').style.display = 'none';
-            document.getElementById('quit').style.display = 'block';
+//            document.getElementById('quit').style.display = 'block';
+            document.querySelector( "#nav-toggle" ).classList.toggle( "active" );
             break;
+*/
 
         default:
     }
@@ -533,9 +592,13 @@ rule.second = [0, 30];
 /** Schedule a job on the 30 second rule to update the main dfp window lists: */
 /**---------------------------------------------------------------------------*/
 schedule.scheduleJob(rule, function(){
-    getListMainPage('phembot', 6, true);
-    getListMainPage('master', 4, false);
-    getListMainPage('plan', 4, false);
+    getListMainPage('cc', 2, true);
+    getListMainPage('check', 5, true);
+    getListMainPage('do', 5, true);
+    getListMainPage('list-master', 3, false);
+    getListMainPage('list-working', 3, false);
+    getListMainPage('ofi', 2, true);
+    getListMainPage('plan', 7, false);
 });
 
 /**---------------------------------------------------------------------------*/
@@ -641,6 +704,86 @@ function isWithin24Hours(timeDue) {
 /******************************************************************************/
 
 /**---------------------------------------------------------------------------*/
+/** Function: getListURI                                                      */
+/** Gets the API URI path for the specified data.                             */
+/**                                                                           */
+/** @param {string} type     The type of list data to get.                    */
+/** @param {number} num      The number of list items to get or 0 for all.    */
+/** @param {number} name     The master list name.                            */
+/**---------------------------------------------------------------------------*/
+function getListURI(type, num, name) {
+    /**-----------------------------------------------------------------------*/
+    /** Declare local variables:                                              */
+    /**-----------------------------------------------------------------------*/
+    var uri = '';
+
+    /**-----------------------------------------------------------------------*/
+    /** Process according to list context:                                    */
+    /**-----------------------------------------------------------------------*/
+    switch (type) {
+        /**-------------------------------------------------------------------*/
+        /** Opportunity For Improvement (OFI):                                */
+        /**-------------------------------------------------------------------*/
+        case ('cc'):
+            uri = '/listCC/' + num;
+            break;
+
+        /**-------------------------------------------------------------------*/
+        /** Phemobots pending checking prior to completion:                   */
+        /**-------------------------------------------------------------------*/
+        case ('check'):
+            uri = '/listPhembotsCheck/' + num;
+            break;
+
+        /**-------------------------------------------------------------------*/
+        /** Do, or phembot task list:                                         */
+        /**-------------------------------------------------------------------*/
+        case ('do'):
+            uri = '/listPhembots/' + num;
+            break;
+
+        /**-------------------------------------------------------------------*/
+        /** Master list:                                                      */
+        /**-------------------------------------------------------------------*/
+        case ('list-master'):
+            uri = '/catalogLists/master/' + num;
+            break;
+
+        /**-------------------------------------------------------------------*/
+        /** Master list:                                                      */
+        /**-------------------------------------------------------------------*/
+        case ('list-working'):
+            uri = '/catalogLists/working/' + num;
+            break;
+
+        /**-------------------------------------------------------------------*/
+        /** Opportunity For Improvement (OFI):                                */
+        /**-------------------------------------------------------------------*/
+        case ('ofi'):
+            uri = '/listOFI/' + num;
+            break;
+
+        /**-------------------------------------------------------------------*/
+        /** Quality Assurance Plan (list of Quality Controls):                */
+        /**-------------------------------------------------------------------*/
+        case ('plan'):
+            uri = '/planQualityAssurance/' + num;
+            break;
+
+        /**-------------------------------------------------------------------*/
+        /** Unknown type:                                                     */
+        /**-------------------------------------------------------------------*/
+        default:
+            uri = '/lists/' + name;// + '/' + num;
+    }
+
+    /**-----------------------------------------------------------------------*/
+    /** Return the URI path to the caller:                                    */
+    /**-----------------------------------------------------------------------*/
+    return uri;
+}
+
+/**---------------------------------------------------------------------------*/
 /** Function: getListMainPage                                                 */
 /** Gets the list data with a limit on the number of items returned from the  */
 /** server.                                                                   */
@@ -652,29 +795,9 @@ function isWithin24Hours(timeDue) {
 /**---------------------------------------------------------------------------*/
 function getListMainPage(type, num, notify) {
     /**-----------------------------------------------------------------------*/
-    /** Declare local variables:                                              */
+    /** Get the requested page list URI to request the data from the server:  */
     /**-----------------------------------------------------------------------*/
-    var uri = '';
-
-    /**-----------------------------------------------------------------------*/
-    /** Set the API uri if a phembot list request:                            */
-    /**-----------------------------------------------------------------------*/
-    if (type === 'phembot') {
-        uri = '/listPhembots/' + num;
-    }
-
-    /**-----------------------------------------------------------------------*/
-    /** Set the API uri if a QA plan list request:                            */
-    /**-----------------------------------------------------------------------*/
-    else if (type === 'plan') {
-        uri = '/planQualityAssurance/' + num;
-    }
-    else {
-        /**-------------------------------------------------------------------*/
-        /** Set the API uri for the phembot catalog list request:             */
-        /**-------------------------------------------------------------------*/
-        uri = '/catalogMasters/' + num;
-    }
+    var uri = getListURI(type, num, '');
 
     /**-----------------------------------------------------------------------*/
     /** Set the http options to be used by the request:                       */
@@ -744,14 +867,9 @@ function getListMainPage(type, num, notify) {
 /**---------------------------------------------------------------------------*/
 function getListDetailPage(name, num) {
     /**-----------------------------------------------------------------------*/
-    /** Declare local variables:                                              */
+    /** Get the requested page list URI to request the data from the server:  */
     /**-----------------------------------------------------------------------*/
-    var uri = '';
-
-    /**-----------------------------------------------------------------------*/
-    /** Set the API uri with the list name and number to get:                 */
-    /**-----------------------------------------------------------------------*/
-    uri = '/listMasters/' + name;// + '/' + num;
+    var uri = getListURI('', num, name);
 
     /**-----------------------------------------------------------------------*/
     /** Set the http options to be used by the request:                       */
@@ -804,6 +922,7 @@ function getListDetailPage(name, num) {
 }
 
 
+/*
 function postAPI(type, item){
     var uri;
     var xhr = new XMLHttpRequest();
@@ -824,7 +943,6 @@ function postAPI(type, item){
     xhr.send(item);
 }
 
-/*
 function DrawSpiral(mod) {
     var c = document.getElementById("myCanvas");
     var cxt = c.getContext("2d");

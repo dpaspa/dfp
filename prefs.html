@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Handlebars form helpers - Form validation example</title>
+    <!--script type="text/javascript" src="lib/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="lib/handlebars.js"></script>
+    <script type="text/javascript" src="lib/handlebars.form-helpers.js"></script-->
+
+    <!--script type="text/javascript" src="./lib/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="./lib/handlebars.js"></script>
+    <script type="text/javascript" src="./lib/handlebars.form-helpers.js"></script-->
+
+    <script type="text/javascript" src="lib/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="./lib/handlebars.js"></script>
+    <script type="text/javascript" src="./lib/handlebars.form-helpers.js"></script>
+    <script type="text/javascript" src="prefs.js"></script>
+
+    <!--script src="components/jquery/jquery.min.js"></script>
+    <script src="components/handlebars.js/dist/handlebars.js"></script>
+    <script src="handlebars.form-helpers.min.js"></script-->
+
+    <link href="bootstrap.css" rel="stylesheet" />
+
+    <style type="text/css">
+    body {
+        margin: 20px;
+    }
+    #form-container {
+        width: 500px;
+    }
+    #form-container .validation-error {
+        border-color: #b94a48;
+        color: #b94a48;
+    }
+    #form-container .help-block.text-error {
+        color: #b94a48;
+    }
+    </style>
+</head>
+<body>
+
+    <div id="form-container" class="container"></div>
+
+    <script type="text/html" id="form-template">
+
+        {{#unless submitted}}
+            <div class="alert alert-info">Submit the form below to view how the validation helpers work.</div>
+        {{/unless}}
+
+        {{#if submitted}}
+            {{#unless errors}}
+                <div class="alert alert-success">
+                    Form successfully submitted!
+                </div>
+            {{/unless}}
+        {{/if}}
+
+        {{#if errors}}
+            <div class="alert alert-error">
+                <strong>Error submitting the form.</strong> Please correct the errors below.
+            </div>
+        {{/if}}
+
+        {{#form url class="form-horizontal" id="example-form"}}
+            <div class="control-group">
+                {{label_validation 'name' 'Enter your name' errors class="control-label"}}
+                <div class="controls">
+                    {{input_validation 'name' person.name errors}}
+                    {{#field_errors 'name' errors}}
+                        <span class="help-block text-error">{{this}}</span>
+                    {{/field_errors}}
+                </div>
+            </div>
+            <div class="control-group">
+                {{label_validation 'surname' 'Enter your surname' errors class="control-label"}}
+                <div class="controls">
+                    {{input_validation 'surname' person.surname errors}}
+                    {{field_errors 'surname' errors class="help-block text-error"}}
+                </div>
+            </div>
+            <div class="control-group">
+                {{label_validation 'email' 'Enter your email' errors class="control-label"}}
+                <div class="controls">
+                    {{input_validation 'email' person.email errors}}
+                    {{field_errors 'email' errors class="help-block text-error"}}
+                </div>
+            </div>
+            <div class="control-group">
+                {{label_validation 'title' 'Your title' errors class="control-label"}}
+                <div class="controls">
+                    {{select_validation 'title' titles person.title errors}}
+                    {{field_errors 'title' errors class="help-block text-error"}}
+                </div>
+            </div>
+            <div class="control-group">
+                {{label_validation 'food' 'Your favourite food' errors class="control-label"}}
+                <div class="controls">
+                    {{select_validation 'food' foods person.food errors multiple="multiple"}}
+                    {{field_errors 'title' errors class="help-block text-error"}}
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    {{#label}}
+                        {{checkbox_validation 'employed' 'yes' person.employed errors}}
+                        Employed?
+                    {{/label}}
+                    {{field_errors 'employed' errors class="help-block text-error"}}
+                </div>
+            </div>
+            <div class="control-group">
+                {{label_validation '' "Do you like cats?" errors class="control-label"}}
+                <div class="controls">
+                    {{#label}}
+                        {{radio_validation 'likes_cats' 'yes' person.likes_cats errors}}
+                        Yes
+                    {{/label}}
+                    {{#label}}
+                        {{radio_validation 'likes_cats' 'no' person.likes_cats errors}}
+                        No
+                    {{/label}}
+                    {{field_errors 'likes_cats' errors class="help-block text-error"}}
+                </div>
+            </div>
+            <div class="control-group">
+                {{label_validation 'fileupload' 'Profile picture' errors class="control-label"}}
+                <div class="controls">
+                    {{file_validation 'fileupload'}}
+                    {{field_errors 'fileupload' errors class="help-block text-error"}}
+                </div>
+            </div>
+            <div class="control-group">
+                {{label_validation 'bio' 'Biography' errors class="control-label"}}
+                <div class="controls">
+                    {{textarea_validation 'bio' person.bio}}
+                    {{field_errors 'bio' errors class="help-block text-error"}}
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="form-actions">
+                    {{submit 'save' 'Save details' class="btn btn-primary"}}
+                </div>
+            </div>
+        {{/form}}
+    </script>
+</body>
+</html>

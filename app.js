@@ -24,7 +24,6 @@ var BrowserWindow = require('browser-window'); // Create native browser window
 var ipc = require('ipc');                      // Inter-process communication
 var menubar = require('menubar');
 var electronGoogleOauth = require('electron-google-oauth');
-var path = require('path');
 var shell = require('shelljs');
 var io = require('socket.io');
 var fs = require('fs');
@@ -185,12 +184,26 @@ app.on('ready', function() {
     });
 
     /**-----------------------------------------------------------------------*/
+    /** Create the master data list table window:                             */
+    /**-----------------------------------------------------------------------*/
+    var utilWindow = new BrowserWindow({
+        title: 'Desktop Focal Point Utility',
+        width: finalWidth,
+        height: finalHeight,
+        "skip-taskbar": true,
+        frame: false,
+        transparent: true,
+        show: false
+    });
+
+    /**-----------------------------------------------------------------------*/
     /** Set all the positions to be the same:                                 */
     /**-----------------------------------------------------------------------*/
     calendarWindow.setPosition(finalX, finalY);
     dashboardWindow.setPosition(finalX, finalY);
     learningWindow.setPosition(finalX, finalY);
     tableWindow.setPosition(finalX, finalY);
+    utilWindow.setPosition(finalX, finalY);
 
     /**-----------------------------------------------------------------------*/
     /** Load the URIs of the windows:                                         */
@@ -298,6 +311,18 @@ app.on('ready', function() {
     });
 
     /**-----------------------------------------------------------------------*/
+    /** Dock the main window:                                                 */
+    /**-----------------------------------------------------------------------*/
+    ipc.on('dock', function() {
+        console.log('dock');
+/*
+        for (i = 1; i < 10; i++) {
+            mainWindow.setSize(350 * (10 - i) / 10, size.height);
+        }
+*/
+    });
+
+    /**-----------------------------------------------------------------------*/
     /** Process the search input box enter key event:                         */
     /**-----------------------------------------------------------------------*/
     ipc.on('learning', function(arg) {
@@ -310,7 +335,7 @@ app.on('ready', function() {
     /**-----------------------------------------------------------------------*/
     ipc.on('datatable', function(event, data) {
         var s = JSON.stringify(data);
-        fs.writeFile("./arrays.txt", s , function(err) {
+        fs.writeFile('./arrays.txt', s , function(err) {
             if(err) {
                 return console.log(err);
             }
@@ -342,6 +367,25 @@ app.on('ready', function() {
         var effector = shell.exec(arg, {async:true}).output;
     });
 
+    /**-----------------------------------------------------------------------*/
+    /** Process an OS shell command execution event:                          */
+    /**-----------------------------------------------------------------------*/
+    ipc.on('prefs', function(event, arg) {
+        utilWindow.loadUrl('file://' + __dirname + '/prefs.html');
+        utilWindow.show();
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Process an OS shell command execution event:                          */
+    /**-----------------------------------------------------------------------*/
+    ipc.on('user', function(event, arg) {
+        utilWindow.loadUrl('file://' + __dirname + '/user.html');
+        utilWindow.show();
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Menu bar click event:                                                 */
+    /**-----------------------------------------------------------------------*/
     mb.on('click', function () {
         console.log('menubar clicked!');
     });
@@ -361,7 +405,7 @@ var mb = menubar({
     width: 73,
     height: 73,
     index: 'file://' + __dirname + '/main.html',
-    icon: path.join(__dirname, 'IconTemplate.png')
+    icon: __dirname + '/IconTemplate.png'
 });
 
 mb.on('ready', function ready () {

@@ -4,14 +4,18 @@
   <title>ipoogi desktop focal point</title>
   <meta charset="utf-8">
   <link rel="stylesheet" href="main.css">
-  <div class="app-container">
+  <link rel="stylesheet" href="theme-dark.css" title="dark">
+  <link rel="alternate stylesheet" href="theme-light.css" title="light">
+</head>
+<body>
+  <div class="app-container" id="site-wrap">
     <div class="menu-top">
       <div class="menu-top-left">
         <div class="menu-item" id="plan-label">
           <a href="#" class="menu-btn">Plan</a>
         </div>
         <div class="menu-item" id="do-label">
-          <a href="#" class="menu-btn">Do</a>
+          <a href="#" class="menu-btn" id="do-label-text">Do</a>
         </div>
         <div class="menu-item" id="check-label">
           <a href="#" class="menu-btn">Check</a>
@@ -21,20 +25,12 @@
         </div>
       </div>
       <div class="menu-top-right">
-        <div class="menu-item" id="user-label">
-          <a href="#" class="menu-btn"><img src="./images/user.png"></a> </div>
-        <div class="menu-item" id="prefs-label">
-          <a href="#" class="menu-btn"><img src="./images/prefs.png"></a>
+        <div class="menu-item" id="list-label">
+          <a href="#" class="menu-btn">List</a>
         </div>
       </div>
     </div>
-    <div class="search" id="searcher">
-      <form>
-        <input class="search-entry" id="search-key" type="text" required>
-      </form>
-    </div>
     <div class="content-main" id="content-main-panel">
-
       <div id="plan-content">
         <h2>Quality Assurance Plan</h2>
         <div id="result-plan">
@@ -46,7 +42,7 @@
 
       <div id="do-content">
         <h2>Upcoming tasks</h2>
-        <div id="result-phembot">
+        <div id="result-do">
           <div class="loader">Loading...
           </div>
         </div>
@@ -54,68 +50,106 @@
       </div>
 
       <div id="check-content">
-        <h2>Check</h2>
+        <h2>Check completed tasks</h2>
+        <div id="result-check">
+          <div class="loader">Loading...
+          </div>
+        </div>
+        <p style="text-align: right"><a href="" target="_blank">x more pending &hellip;</a></p>
       </div>
 
       <div id="act-content">
-        <h2>Improve</h2>
-          <div class="ofi">
-            <h2>OFI</h2>
-            <p>Opportunity For Improvement selection.. open in another window.</p>
+          <span><h2>Opportunity For Improvement (OFI)</h2></span><span id="plus-ofi"></span>
+        <div id="result-ofi">
+          <div class="loader">Loading...
           </div>
-          <div class="cc">
-            <h2>CC</h2>
-            <p>Change Control selection.. open in another window.</p>
+        </div>
+        <p style="text-align: right"><a href="" target="_blank">x more pending &hellip;</a></p>
+        <br>
+        <h2>Controlling Change (CC)</h2>
+        <div id="result-cc">
+          <div class="loader">Loading...
           </div>
+        </div>
+        <p style="text-align: right"><a href="" target="_blank">x more pending &hellip;</a></p>
       </div>
 
       <div id="list-content">
+        <h2>Working Lists</h2>
+        <div id="result-list-working">
+          <div class="loader">Loading...
+          </div>
+        </div>
+        <p style="text-align: right"><a href="" target="_blank">click for all &hellip;</a></p>
         <h2>Master Data Lists</h2>
-        <div id="result-master">
+        <div id="result-list-master">
           <div class="loader">Loading...
           </div>
         </div>
         <p style="text-align: right"><a href="" target="_blank">click for all &hellip;</a></p>
       </div>
-
-      <div id="user-content">
-        <div>
-            User login information
-        </div>
-      </div>
-
-      <div id="prefs-content">
-        <div>
-            Preference changes are saved automatically
-        </div>
-      </div>
     </div>
 
-    <div class="content-dynamic">
-      <div id="dyno">
-          <!-- canvas id="myCanvas" width="350" height="240"></canvas> -->
-      </div>
-      <div class="content-chat" id="chat">
-        <div class="chat-options">
-            <button id="chat-internal">Internal</button>
-            <button id="chat-external">External</button>
-            <button id="chat-support">Support</button>
-            <button id="chat-close">Close</button>
-        </div>
-        <div class="chat-messages" id="chat-background">
-          <ul id="messages"></ul>
-        </div>
-        <form id="chat-form" action="">
-          <input id="m" autocomplete="off" /><button id="m-send">Send</button>
-        </form>
-      </div>
+    <div class="search" id="searcher">
+      <form>
+        <input class="search-entry" id="search-key" type="text" required>
+      </form>
     </div>
 
+    <div class="flip-container" ontouchstart="this.classList.toggle('hover');">
+        <div class="flipper" id="flip-menu">
+            <div class="front" id="front-face">
+                <!-- front content -->
+                <div class="content-dynamic">
+                  <div id="dyno">
+                      <!-- canvas id="myCanvas" width="350" height="240"></canvas> -->
+                  </div>
+                  <div class="content-chat" id="chat">
+                    <div class="chat-options">
+                        <button id="chat-internal">Internal</button>
+                        <button id="chat-external">External</button>
+                        <button id="chat-support">Support</button>
+                        <button id="chat-close">Close</button>
+                    </div>
+                    <div class="chat-messages" id="chat-background">
+                      <ul id="messages"></ul>
+                    </div>
+                    <form id="chat-form" action="">
+                      <input id="m" autocomplete="off" /><button id="m-send">Send</button>
+                    </form>
+                  </div>
+                </div>
+            </div>
+            <div class="back" id="back-face">
+                <div class="main-menu">
+                <!-- back content -->
+                    <div class="menu-icon" id="chat-icon">
+                      <a href="#" class="menu-btn"><img src="./images/chat.png"></a>
+                    </div>
+                    <div class="menu-icon" id="dashboard-icon">
+                      <a href="#" class="menu-btn"><img src="./images/chart.png"></a>
+                    </div>
+                    <div class="menu-icon" id="calendar-icon">
+                      <a href="#" class="menu-btn"><img src="./images/calendar.png"></a>
+                    </div>
+                    <div class="menu-icon" id="cart-icon">
+                      <a href="#" class="menu-btn"><img src="./images/cart.png"></a>
+                    </div>
+                    <div class="menu-icon" id="user-label">
+                      <a href="#" class="menu-btn"><img src="./images/user.png"></a>
+                    </div>
+                    <div class="menu-icon" id="prefs-label">
+                      <a href="#" class="menu-btn"><img src="./images/prefs2.png"></a>
+                    </div>
+                    <div class="menu-icon" id="quit-label">
+                      <a href="#" class="menu-btn"><img src="./images/exit.png"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="menu-bottom">
       <div class="menu-bottom-left">
-        <div class="menu-item" id="list-label">
-          <a href="#" class="menu-btn">List</a>
-        </div>
         <div class="menu-item" id="chat-label">
           <a href="#" class="menu-btn">Chat</a>
         </div>
@@ -127,34 +161,89 @@
         </div>
       </div>
       <div class="menu-bottom-right">
-        <div class="menu-item">
-          <a href="#" id="quit" class="menu-btn">Quit</a>
+        <div class="menu-item" id="menu-label">
+          <a id="nav-toggle" href="#">
+            <div class="hamburger">
+              <span></span>
+            </div>
+          </a>
+          <!--a href="#" class="menu-btn"><img width="20px" height="20px" src="./images/menu-bar.png"></a-->
         </div>
       </div>
     </div>
   </div>
 
-  <script id="template-master" type="text/x-handlebars-template">
-    <ul class="list">
-      {{#master}}
-      <li>
-        <p class="info"><a href="" target="master_{{name}}">{{title}}</a></p>
-	    <p class="desc">{{title}}</p>
-	    <p><span class="spacing">★ {{stargazers_count}}</span><span class="spacing">{{ref}}</span></p>
+  <script id="template-cc" type="text/x-handlebars-template">
+    <ul class="list-task">
+      {{#cc}}
+      <li class="item-container">
+        <p class="info"><a href="" target="cc_{{_id}}">{{title}}</a></p>
+	    <p class="desc">by <strong>{{type}}</strong> on <strong>{{status}}</strong></p>
+	    <p class="location">{{ref}}</p>
+        <div class="progress"></div>
       </li>
-      {{/master}}
+      {{/cc}}
     </ul>
   </script>
 
-  <script id="template-phembot" type="text/x-handlebars-template">
-    <ul class="list">
-      {{#phembot}}
+  <script id="template-check" type="text/x-handlebars-template">
+    <ul class="list-task">
+      {{#check}}
       <li class="item-container">
-        <p class="info"><a href="" target="phembot_{{_id}}">{{title}}</a></p>
+        <p class="info"><a href="" target="check_{{_id}}">{{title}}</a></p>
 	    <p class="desc">by <strong>{{type}}</strong> on <strong>{{status}}</strong></p>
 	    <p class="location">{{ref}}</p>
+        <div class="progress"></div>
       </li>
-      {{/phembot}}
+      {{/check}}
+    </ul>
+  </script>
+
+  <script id="template-do" type="text/x-handlebars-template">
+    <ul class="list-task">
+      {{#do}}
+      <li class="item-container">
+        <p class="info"><a href="" target="do_{{_id}}">{{title}}</a></p>
+        <p class="location">Type {{type}} with status {{status}}</p>
+	    <p class="desc">By <strong>{{task.rolePrimary}}</strong> on <strong>{{task.nextDue}}</strong></p>
+        <div class="progress"></div>
+      </li>
+      {{/do}}
+    </ul>
+  </script>
+
+  <script id="template-list-master" type="text/x-handlebars-template">
+    <ul class="list">
+      {{#list-master}}
+      <li>
+        <p class="info"><a href="" target="list_{{name}}">{{title}}</a></p>
+	    <p class="desc">{{title}}</p>
+      </li>
+      {{/list-master}}
+    </ul>
+  </script>
+
+  <script id="template-list-working" type="text/x-handlebars-template">
+    <ul class="list">
+      {{#list-working}}
+      <li>
+        <p class="info"><a href="" target="list_{{name}}">{{title}}</a></p>
+	    <p class="desc">{{title}}</p>
+      </li>
+      {{/list-working}}
+    </ul>
+  </script>
+
+  <script id="template-ofi" type="text/x-handlebars-template">
+    <ul class="list-task">
+      {{#ofi}}
+      <li class="item-container">
+        <p class="info"><a href="" target="ofi_{{_id}}">{{title}}</a></p>
+	    <p class="desc">by <strong>{{type}}</strong> on <strong>{{status}}</strong></p>
+	    <p class="location">{{ref}}</p>
+        <div class="progress"></div>
+      </li>
+      {{/ofi}}
     </ul>
   </script>
 
@@ -164,7 +253,6 @@
       <li>
         <p class="info"><a href="" target="plan_{{_id}}">{{title}}</a></p>
 	    <p class="desc">{{name}}</>
-	    <p><span class="spacing">★ {{ref}}</span><span class="spacing">{{title}}</span></p>
       </li>
       {{/plan}}
     </ul>
