@@ -26,25 +26,29 @@ module.exports = {
   /** Appliction paths (paths are relative to pathHome).                      */
   /** OS Native executables:                                                  */
   /* ------------------------------------------------------------------------ */
-  pathOSExec: 'c:/',
+  pathOSExec: 'c:',
   pathWrite: 'Program Files/Microsoft Office/Office14/winword',
   pathSheet: 'Program Files/Microsoft Office/Office14/excel',
 
   /* ------------------------------------------------------------------------ */
   /** Shared server Phembot paths:                                            */
   /* ------------------------------------------------------------------------ */
-  pathHome: 'q:/',   // '/home/dpaspa/Dropbox/Business/aka/qms',
+  pathRemote: 'q:',   // '/home/dpaspa/Dropbox/Business/aka/qms',
   pathLogo: 'logo.png',
-  pathEffector: 'effectors',
+  pathEffectors: 'effectors',
   pathMessengers: 'effectors',
+  pathPhembots: 'phembots',
+  pathReceptors: 'receptors',
   fileEffector: 'pb.dotm',
 
   /* ------------------------------------------------------------------------ */
   /** Local Phembot and receptor queue paths:                                 */
   /* ------------------------------------------------------------------------ */
-  pathReceptorsIn: 'receptors/in',
-  pathReceptorsOut: 'receptors/out',
-  pathPhembotsIn: 'effectors/in',
-  pathPhembotsOut: 'effectors/out',
-  pathReceptors: 'x:/business/ipoogi'
+  pathLocal: '/home/dpaspa/Dropbox/Business/ipoogi/files', // 'x:/business/ipoogi/files',
+  pathEffectorsIn: 'in/effectors',
+  pathEffectorsOut: 'out/effectors',
+  pathPhembotsIn: 'in/phembots',
+  pathPhembotsOut: 'out/phembots',
+  pathReceptorsIn: 'in/receptors',
+  pathReceptorsOut: 'out/receptors'
 }

@@ -26,7 +26,6 @@ var remote = require('remote');
 var notifier = require('node-notifier');
 //var Handlebars = require('handlebars');
 //var Handlebars = require('lib/handlebars');
-var shell = require('shell');
 var schedule = require('node-schedule');
 var moment = require('moment-timezone');
 var dynamics = require('dynamics.js');
@@ -93,16 +92,14 @@ function renderTemplate(type, data) {
 /** Calendar window has been closed:                                          */
 /**---------------------------------------------------------------------------*/
 ipc.on('calendarClose', function() {
-    document.getElementById("cal-label").style.backgroundColor = '#1f2023';
-    document.getElementById("cal-label").firstElementChild.style.color = '#7d7f80';
+    document.getElementById("cal-label").classList.remove('activeLabel');
 });
 
 /**---------------------------------------------------------------------------*/
 /** Dashboard window has been closed:                                         */
 /**---------------------------------------------------------------------------*/
 ipc.on('dashboardClose', function() {
-    document.getElementById("dash-label").style.backgroundColor = '#1f2023';
-    document.getElementById("dash-label").firstElementChild.style.color = '#7d7f80';
+    document.getElementById("dash-label").classList.remove('activeLabel');
 });
 
 /**---------------------------------------------------------------------------*/
@@ -144,7 +141,6 @@ document.body.addEventListener('click', function(e){
         /** API. Send it to the renderer side:                                */
         /**-------------------------------------------------------------------*/
         var name = ref.substring(delimChar + 1);
-//        var data = getListDetailPage(name, 0);
         getListDetailPage(name, 0);
     }
 
@@ -179,8 +175,7 @@ document.getElementById('cal-label').addEventListener('click', function() {
     /**-----------------------------------------------------------------------*/
     /** Toggle the label display and send the event to the renderer process:  */
     /**-----------------------------------------------------------------------*/
-    document.getElementById("cal-label").style.backgroundColor = '#828282';
-    document.getElementById("cal-label").firstElementChild.style.color = '#000000';
+    document.getElementById("cal-label").classList.add('activeLabel');
     ipc.send('calendar');
 })
 
@@ -188,13 +183,19 @@ document.getElementById('cal-label').addEventListener('click', function() {
 /** Chat network button events:                                               */
 /**---------------------------------------------------------------------------*/
 document.getElementById('chat-external').addEventListener('click', function() {
-    document.getElementById('chat-background').style.backgroundColor = '#ff8295';
+    document.getElementById('chat-background').classList.add('chatExternal');
+    document.getElementById('chat-background').classList.remove('chatInternal');
+    document.getElementById('chat-background').classList.remove('chatSupport');
 });
 document.getElementById('chat-internal').addEventListener('click', function() {
-    document.getElementById('chat-background').style.backgroundColor = '#82ff98';
+    document.getElementById('chat-background').classList.remove('chatExternal');
+    document.getElementById('chat-background').classList.add('chatInternal');
+    document.getElementById('chat-background').classList.remove('chatSupport');
 });
 document.getElementById('chat-support').addEventListener('click', function() {
-    document.getElementById('chat-background').style.backgroundColor = '#82e0ff';
+    document.getElementById('chat-background').classList.remove('chatExternal');
+    document.getElementById('chat-background').classList.remove('chatInternal');
+    document.getElementById('chat-background').classList.add('chatSupport');
 });
 
 /**---------------------------------------------------------------------------*/
@@ -238,8 +239,7 @@ document.getElementById('dash-label').addEventListener('click', function() {
     /**-----------------------------------------------------------------------*/
     /** Toggle the label display and send the event to the renderer process:  */
     /**-----------------------------------------------------------------------*/
-    document.getElementById("dash-label").style.backgroundColor = '#828282';
-    document.getElementById("dash-label").firstElementChild.style.color = '#000000';
+    document.getElementById("dash-label").classList.add('activeLabel');
     ipc.send('dashboard');
 })
 
@@ -264,7 +264,19 @@ document.getElementById('dyno').addEventListener('click', function() {
 /**---------------------------------------------------------------------------*/
 /** Dynamic content drop event. This is the user's single point of exit for   */
 /** all workflows used to send files for processing.                          */
+/** First cancel the dragenter and dragover events or it won't work as per    */
+/** bug http://stackoverflow.com/questions/21339924/drop-event-not-firing-in- */
+/** chrome.                                                                   */
 /**---------------------------------------------------------------------------*/
+document.getElementById('dyno').addEventListener('dragenter', function(e) {
+  e.preventDefault();
+});
+
+document.getElementById('dyno').addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+});
+
 document.getElementById('dyno').addEventListener('drop', function(e) {
     /**-----------------------------------------------------------------------*/
     /** Process the drop event based on what was dropped on the dyno:         */
@@ -385,7 +397,7 @@ document.getElementById('user-label').addEventListener('click', function() {
 /**---------------------------------------------------------------------------*/
 document.getElementById('quit-label').addEventListener('click', function() {
     ipc.send('quit');
-})
+});
 
 /**---------------------------------------------------------------------------*/
 /** Function: setDisplayContext                                               */
@@ -400,8 +412,7 @@ function setDisplayContext(context) {
     var checkdynamic;
     if (context === 'dynamic-chat') {
         lastdynamic = 'chat';
-        document.getElementById("chat-label").style.backgroundColor = '#828282';
-        document.getElementById("chat-label").firstElementChild.style.color = '#000000';
+        document.getElementById("chat-label").classList.add('activeLabel');
         document.getElementById('chat').style.display = 'block';
         document.getElementById('dyno').style.display = 'none';
     }
@@ -411,8 +422,7 @@ function setDisplayContext(context) {
     /**-----------------------------------------------------------------------*/
     else if (context === 'dynamic-dyno') {
         lastdynamic = 'dyno';
-        document.getElementById("chat-label").style.backgroundColor = '#1f2023';
-        document.getElementById("chat-label").firstElementChild.style.color = '#7d7f80';
+        document.getElementById("chat-label").classList.remove('activeLabel');
         document.getElementById('chat').style.display = 'none';
         document.getElementById('dyno').style.display = 'block';
     }
@@ -423,22 +433,14 @@ function setDisplayContext(context) {
     else if (context === 'dyno') {
     }
     else {
-        /**-------------------------------------------------------------------*/
-        /** Reset all the labels:                                             */
-        /**-------------------------------------------------------------------*/
-        document.getElementById("act-label").style.backgroundColor = '#1f2023';
-        document.getElementById("check-label").style.backgroundColor = '#1f2023';
-        document.getElementById("do-label").style.backgroundColor = '#1f2023';
-        document.getElementById("list-label").style.backgroundColor = '#1f2023';
-        document.getElementById("plan-label").style.backgroundColor = '#1f2023';
-
-        document.getElementById("act-label").firstElementChild.style.color = '#7d7f80';
-        document.getElementById("check-label").firstElementChild.style.color = '#7d7f80';
-        document.getElementById("do-label").firstElementChild.style.color = '#7d7f80';
-        document.getElementById("list-label").firstElementChild.style.color = '#7d7f80';
-        document.getElementById("plan-label").firstElementChild.style.color = '#7d7f80';
-//        document.getElementById("prefs-label").style.backgroundColor = '#1f2023';
-//        document.getElementById("user-label").style.backgroundColor = '#1f2023';
+        /**--------------------------------------------------------------------*/
+        /** Reset all the labels to set the active one later:                  */
+        /**--------------------------------------------------------------------*/
+        document.getElementById("act-label").classList.remove('activeLabel');
+        document.getElementById("check-label").classList.remove('activeLabel');
+        document.getElementById("do-label").classList.remove('activeLabel');
+        document.getElementById("list-label").classList.remove('activeLabel');
+        document.getElementById("plan-label").classList.remove('activeLabel');
 
         /**-------------------------------------------------------------------*/
         /** Hide everything in the top part as not just a dyno change:        */
@@ -448,9 +450,7 @@ function setDisplayContext(context) {
         document.getElementById('do-content').style.display = 'none';
         document.getElementById('list-content').style.display = 'none';
         document.getElementById('plan-content').style.display = 'none';
-//        document.getElementById('prefs-content').style.display = 'none';
         document.getElementById('searcher').style.display = 'none';
-//        document.getElementById('user-content').style.display = 'none';
     }
 
     /**-----------------------------------------------------------------------*/
@@ -462,8 +462,7 @@ function setDisplayContext(context) {
         /**-------------------------------------------------------------------*/
         case ('act'):
             checkdynamic = true;
-            document.getElementById("act-label").style.backgroundColor = '#828282';
-            document.getElementById("act-label").firstElementChild.style.color = '#000000';
+            document.getElementById("act-label").classList.add('activeLabel');
             document.getElementById('act-content').style.display = 'block';
             document.getElementById('searcher').style.display = 'block';
             break;
@@ -473,8 +472,7 @@ function setDisplayContext(context) {
         /**-------------------------------------------------------------------*/
         case ('check'):
             checkdynamic = true;
-            document.getElementById("check-label").style.backgroundColor = '#828282';
-            document.getElementById("check-label").firstElementChild.style.color = '#000000';
+            document.getElementById("check-label").classList.add('activeLabel');
             document.getElementById('check-content').style.display = 'block';
             document.getElementById('searcher').style.display = 'block';
             break;
@@ -484,8 +482,7 @@ function setDisplayContext(context) {
         /**-------------------------------------------------------------------*/
         case ('do'):
             checkdynamic = true;
-            document.getElementById("do-label").style.backgroundColor = '#828282';
-            document.getElementById("do-label").firstElementChild.style.color = '#000000';
+            document.getElementById("do-label").classList.add('activeLabel');
             document.getElementById('do-content').style.display = 'block';
             document.getElementById('searcher').style.display = 'block';
             break;
@@ -504,8 +501,7 @@ function setDisplayContext(context) {
         /**-------------------------------------------------------------------*/
         case ('list'):
             checkdynamic = true;
-            document.getElementById("list-label").style.backgroundColor = '#828282';
-            document.getElementById("list-label").firstElementChild.style.color = '#000000';
+            document.getElementById("list-label").classList.add('activeLabel');
             document.getElementById('list-content').style.display = 'block';
             document.getElementById('searcher').style.display = 'block';
             break;
@@ -516,42 +512,10 @@ function setDisplayContext(context) {
         /**-------------------------------------------------------------------*/
         case ('plan'):
             checkdynamic = true;
-            document.getElementById("plan-label").style.backgroundColor = '#828282';
-            document.getElementById("plan-label").firstElementChild.style.color = '#000000';
+            document.getElementById("plan-label").classList.add('activeLabel');
             document.getElementById('plan-content').style.display = 'block';
             document.getElementById('searcher').style.display = 'block';
             break;
-
-        /**-------------------------------------------------------------------*/
-        /** Preferences screen when the settings icon is clicked:             */
-        /**-------------------------------------------------------------------*/
-/*
-        case ('prefs'):
-            flipPanel();
-            checkdynamic = false;
-//            document.getElementById("prefs-label").style.backgroundColor = '#828282';
-            document.getElementById('prefs-content').style.display = 'block';
-            document.getElementById('chat').style.display = 'none';
-            document.getElementById('dyno').style.display = 'none';
-            document.querySelector( "#nav-toggle" ).classList.toggle( "active" );
-            break;
-*/
-
-        /**-------------------------------------------------------------------*/
-        /** User profile page when the "User" label is clicked:               */
-        /**-------------------------------------------------------------------*/
-/*
-        case ('user'):
-            flipPanel();
-            checkdynamic = false;
-//            document.getElementById("user-label").style.backgroundColor = '#828282';
-            document.getElementById('user-content').style.display = 'block';
-            document.getElementById('chat').style.display = 'none';
-            document.getElementById('dyno').style.display = 'none';
-//            document.getElementById('quit').style.display = 'block';
-            document.querySelector( "#nav-toggle" ).classList.toggle( "active" );
-            break;
-*/
 
         default:
     }
@@ -607,7 +571,7 @@ schedule.scheduleJob(rule, function(){
 /**                                                                           */
 /** Setup the fs.watch object to monitor the local files directory.           */
 /**---------------------------------------------------------------------------*/
-watch.watchTree(config.pathFiles, function (f, curr, prev) {
+watch.watchTree(config.pathLocal + '/' + config.pathReceptorsIn, function (f, curr, prev) {
     /**-----------------------------------------------------------------------*/
     /** Assume there will be nothing to do:                                   */
     /**-----------------------------------------------------------------------*/
@@ -651,10 +615,9 @@ watch.watchTree(config.pathFiles, function (f, curr, prev) {
         /**-------------------------------------------------------------------*/
         /** The file was changed in some way. Better process it:              */
         /**-------------------------------------------------------------------*/
-        console.log(f + ' is being processed');
-        var parser = new xml2js.Parser();
+//        var parser = new xml2js.Parser();
         fs.readFile(f, function(err, data) {
-            postAPI('list', data);
+            postData('list', data);
         });
     }
 });
@@ -805,6 +768,7 @@ function getListMainPage(type, num, notify) {
     var options = {
        host: config.host,
        port: config.port,
+       method: 'GET',
        path: uri
     };
 
@@ -877,6 +841,7 @@ function getListDetailPage(name, num) {
     var options = {
        host: config.host,
        port: config.port,
+       method: 'GET',
        path: uri
     };
 
@@ -922,27 +887,59 @@ function getListDetailPage(name, num) {
 }
 
 
-/*
-function postAPI(type, item){
-    var uri;
-    var xhr = new XMLHttpRequest();
-
+/**---------------------------------------------------------------------------*/
+/** Function: postData                                                        */
+/** Posts the list data to the server.                                        */
+/**                                                                           */
+/** @param {string} type     The type of list object.                         */
+/** @param {number} data     The list data to post.                           */
+/**---------------------------------------------------------------------------*/
+function postData(type, data){
+    /**-----------------------------------------------------------------------*/
+    /** Set the API URI to post the data to:                                  */
+    /**-----------------------------------------------------------------------*/
     if (type === 'phembot') {
-        uri = config.uriAPI + 'phembot';
+        var uri = '/listPhembots';
     }
-
     else {
-        uri = config.uriAPI + 'list';
+        var uri = '/lists';
     }
 
-    xhr.onload = function(){
-        var body = JSON.parse(this.responseText);
+    /**-----------------------------------------------------------------------*/
+    /** Set the http options to be used by the request:                       */
+    /**-----------------------------------------------------------------------*/
+    var options = {
+       host: config.host,
+       port: config.port,
+       method: 'POST',
+       path: uri
     };
 
-    xhr.open('POST', uri, true);
-    xhr.send(item);
+    /**-----------------------------------------------------------------------*/
+    /** Define the callback function used to deal with the response:          */
+    /**-----------------------------------------------------------------------*/
+    var callback = function (response) {
+        /**-------------------------------------------------------------------*/
+        /** Report any error:                                                 */
+        /**-------------------------------------------------------------------*/
+        response.on('end', function() {
+            /**---------------------------------------------------------------*/
+            /** Report the response:                                          */
+            /**---------------------------------------------------------------*/
+            console.log(response);
+        });
+    }
+
+    /**-----------------------------------------------------------------------*/
+    /** Make a request to the server:                                         */
+    /**-----------------------------------------------------------------------*/
+    var req = http.request (options, callback);
+    req.body = data;
+    req.end();
+    console.log('posted to ' + uri);
 }
 
+/*
 function DrawSpiral(mod) {
     var c = document.getElementById("myCanvas");
     var cxt = c.getContext("2d");
@@ -977,44 +974,4 @@ var counter = 10;
 */
 
 //    shell.openExternal(el.href + '&ref=list%id=' + ref.substring(6));
-
-//webview.addEventListener('dragover', function(e) {
-//  e.preventDefault();
-//});
-
-/*document.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-});*/
-
-//        data['listURI'] = 'file:///home/dpaspa/Dropbox/Business/ipoogi/development/electron/table.html';
-//        data['website'] = config.website;
-//
 //        var socket = new io.Socket();
-/*
-var http = require('http');
-
-// Options to be used by request 
-var options = {
-   host: 'localhost',
-   port: '8081',
-   path: '/index.htm'
-};
-
-// Callback function is used to deal with response
-var callback = function(response){
-   // Continuously update stream with data
-   var body = '';
-   response.on('data', function(data) {
-      body += data;
-   });
-
-   response.on('end', function() {
-      // Data received completely.
-      console.log(body);
-   });
-}
-// Make a request to the server
-var req = http.request(options, callback);
-req.end();
-*/

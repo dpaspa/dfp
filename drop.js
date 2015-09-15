@@ -15,6 +15,7 @@
 /** Declare module level variables included from local application files:     */
 /**---------------------------------------------------------------------------*/
 var config = require('./config');
+var shell = require('shelljs');
 
 /**---------------------------------------------------------------------------*/
 /** Function: processDrop                                                     */
@@ -51,12 +52,24 @@ function processDrop(e) {
             /**---------------------------------------------------------------*/
             case 'DOC':
             case 'DOCX':
+                break;
+
+            /**---------------------------------------------------------------*/
+            /** Windows office spreadsheet:                                   */
+            /**---------------------------------------------------------------*/
             case 'XLS':
             case 'XLSX':
                 /**-----------------------------------------------------------*/
                 /** TODO: Send the document to the server:                    */
                 /**-----------------------------------------------------------*/
-                document.getElementById('dyno').style.backgroundImage = 'url(./images/spiral-run-send.gif)';
+                document.getElementById('dyno').style.backgroundImage = 
+                                                    'url(./images/factory.gif)';
+                var success = shell.exec(
+                    '"' + config.pathOSExec + '/' + config.pathWrite + '"' + 
+                    '\ /q\ /x\ /l"' + config.pathRemote + '/' + 
+                    config.pathEffectors + '/' + config.fileEffector + '"' + 
+                    '\ ' + '"' + config.pathRemote + '/' + config.pathPhembots +
+                    '/anyxl.json"', {async:true}).output;
                 break;
 
             /**---------------------------------------------------------------*/
@@ -64,7 +77,7 @@ function processDrop(e) {
             /**---------------------------------------------------------------*/
             case 'JSON':
                 /**-----------------------------------------------------------*/
-                /** Read the conents of the JSON file:                        */
+                /** Read the contents of the JSON file:                       */
                 /**-----------------------------------------------------------*/
                 document.getElementById('dyno').style.backgroundImage = 'url(./images/factory.gif)';
                 var parser = new xml2js.Parser();
@@ -76,9 +89,11 @@ function processDrop(e) {
                         /** process the phembot file:                         */
                         /**---------------------------------------------------*/
                         alert(JSON.stringify(result));
-                        var shellCommand = config.pathWord + '\ /q\ /x\ /l' +
-                                           config.pathEffector + '\ ' +
-                                           config.pathPhembots + files[i].path;
+                        var shellCommand = config.pathOSExec + '/' +
+                                           config.pathWrite + '\ /q\ /x\ /l' +
+                                           config.pathEffector + '/' + 
+                                           config.fileEffector + '\ ' +
+                                           files[i].path;
                         ipc.send('osShell', shellCommand);
                     });
                 });

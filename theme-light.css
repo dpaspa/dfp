@@ -51,12 +51,17 @@ a:hover, a:active {
   opacity: .8;
 }
 
+.menu-btn:hover {
+  opacity: 0.9;
+  color: #ffffff;
+}
+
 .menu-icon:hover {
   opacity: 0.9;
   background-color: #404040;
 }
 
-.menu-icon:active, .menu-item:visited {
+.menu-icon:active, .menu-icon:visited {
   background-color: #707070;
 }
 
@@ -67,16 +72,6 @@ a:hover, a:active {
 
 .menu-item:active, .menu-item:visited {
   background-color: #707070;
-}
-
-.menu-option:hover {
-  color: yellow;
-  background: #ff0000;
-}
-
-.menu-option:checked {
-  color: white;
-  background: #00ff00;
 }
 
 /**---------------------------------------------------------------------------*/

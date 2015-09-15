@@ -143,15 +143,6 @@ a:hover, a:active {
 /*  border: 3px solid #8AC007; */
 }
 
-.menu-btn {
-  opacity: .7;
-}
-
-.menu-btn:hover{
-  opacity: 1;
-  text-decoration: none;
-}
-
 .menu-icon {
   display: inline-block;
   text-align: center;
@@ -160,20 +151,12 @@ a:hover, a:active {
 /*  border: 2px solid #89ff72; */
 }
 
-.menu-icon:hover {
-  opacity: 0.7;
-}
-
 .menu-item {
   display: inline-block;
   text-align: center;
   padding: 5px 5px;
   border-radius: 2px 2px 2px 2px;
 /*  border: 2px solid #89ff72; */
-}
-
-.menu-item:hover {
-  opacity: 0.7;
 }
 
 .menu-top {
@@ -267,6 +250,7 @@ a:hover, a:active {
 }
 
 #chat-internal {
+  cursor: pointer;
   width: 24%; 
   border: none; 
   padding: 5px 5px 5px 5px;
@@ -274,18 +258,21 @@ a:hover, a:active {
 }
 
 #chat-external {
+  cursor: pointer;
   width: 24%; 
   border: none; 
   padding: 5px 5px 5px 5px;
 }
  
 #chat-support {
+  cursor: pointer;
   width: 24%; 
   border: none; 
   padding: 5px 5px 5px 5px;
 }
 
 #chat-close {
+  cursor: pointer;
   width: 24%; 
   border: none; 
   padding: 5px 5px 5px 5px;
@@ -325,6 +312,13 @@ a:hover, a:active {
 
 #messages li { 
   padding: 5px 10px; 
+}
+
+/**---------------------------------------------------------------------------*/
+/** Learn area:                                                               */
+/**---------------------------------------------------------------------------*/
+.learn-panel {
+  display: none;
 }
 
 /**---------------------------------------------------------------------------*/
@@ -447,11 +441,9 @@ a:hover, a:active {
 
 .desc {
   font-weight: normal;
-/*  opacity: .7; */
 }
 .location{
   font-weight: normal;
-/*  opacity: .6; */
 }
 
 .list-task li:nth-child(1) a:link {
@@ -524,15 +516,6 @@ a:hover, a:active {
   border-radius: 5px 5px 5px 5px;
   list-style-type: none;
   overflow: hidden;
-}
-
-.desc {
-  font-weight: normal;
-/*  opacity: .7; */
-}
-.location{
-  font-weight: normal;
-/*  opacity: .6; */
 }
 
 .list li:nth-child(1) a:link {

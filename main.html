@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <link rel="stylesheet" href="main.css">
   <link rel="stylesheet" href="theme-dark.css" title="dark">
-  <link rel="alternate stylesheet" href="theme-light.css" title="light">
+  <!--link rel="alternate stylesheet" href="theme-light.css" title="light"-->
 </head>
 <body>
   <div class="app-container" id="site-wrap">
@@ -14,8 +14,8 @@
         <div class="menu-item" id="plan-label">
           <a href="#" class="menu-btn">Plan</a>
         </div>
-        <div class="menu-item" id="do-label">
-          <a href="#" class="menu-btn" id="do-label-text">Do</a>
+        <div class="menu-item activeLabel" id="do-label">
+          <a href="#" class="menu-btn">Do</a>
         </div>
         <div class="menu-item" id="check-label">
           <a href="#" class="menu-btn">Check</a>
@@ -96,7 +96,7 @@
       </form>
     </div>
 
-    <div class="flip-container" ontouchstart="this.classList.toggle('hover');">
+    <div class="flip-container">
         <div class="flipper" id="flip-menu">
             <div class="front" id="front-face">
                 <!-- front content -->
@@ -106,17 +106,24 @@
                   </div>
                   <div class="content-chat" id="chat">
                     <div class="chat-options">
-                        <button id="chat-internal">Internal</button>
-                        <button id="chat-external">External</button>
-                        <button id="chat-support">Support</button>
-                        <button id="chat-close">Close</button>
+                        <button class="chatInternal" id="chat-internal">Internal</button>
+                        <button class="chatExternal" id="chat-external">External</button>
+                        <button class="chatSupport" id="chat-support">Support</button>
+                        <button class="chatClose" id="chat-close">Close</button>
                     </div>
-                    <div class="chat-messages" id="chat-background">
+                    <div class="chat-messages chatInternal" id="chat-background">
                       <ul id="messages"></ul>
                     </div>
                     <form id="chat-form" action="">
                       <input id="m" autocomplete="off" /><button id="m-send">Send</button>
                     </form>
+                  </div>
+                  <div class="learn-panel">
+                      <div id="result-learn">
+                        <div class="loader">Loading...
+                        </div>
+                      </div>
+                      <p style="text-align: right"><a href="" target="_blank">Click for more&hellip;</a></p>
                   </div>
                 </div>
             </div>
@@ -209,6 +216,17 @@
         <div class="progress"></div>
       </li>
       {{/do}}
+    </ul>
+  </script>
+
+  <script id="template-learn" type="text/x-handlebars-template">
+    <ul class="list">
+      {{#learn}}
+      <li>
+        <p class="info"><a href="" target="learn_{{_id}}">{{term}}</a></p>
+	    <p class="desc">{{summary}}</p>
+      </li>
+      {{/learn}}
     </ul>
   </script>
 
