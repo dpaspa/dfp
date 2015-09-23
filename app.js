@@ -21,6 +21,7 @@ var config = require('./config');
 /**---------------------------------------------------------------------------*/
 var app = require('app');                      // Control application life
 var BrowserWindow = require('browser-window'); // Create native browser window
+var request = require('request');
 var ipc = require('ipc');                      // Inter-process communication
 var menubar = require('menubar');
 var electronGoogleOauth = require('electron-google-oauth');
@@ -65,12 +66,19 @@ app.on('ready', function() {
     var size = atomScreen.getPrimaryDisplay().workAreaSize;
 
     /**-----------------------------------------------------------------------*/
+    /** Roll up events:                                                       */
+    /**-----------------------------------------------------------------------*/
+    var rollInterval;
+    var currentWidth;
+
+    /**-----------------------------------------------------------------------*/
     /** Create the main browser window for the application:                   */
     /**-----------------------------------------------------------------------*/
     mainWindow = new BrowserWindow({
         title: 'Desktop Focal Point',
         width: 350,
         height: size.height,
+        transparent: false,
         "skip-taskbar": true,
         "always-on-top": true,
         frame: false
@@ -81,7 +89,8 @@ app.on('ready', function() {
     /** TODO: slide smoothly in and out on mouse over or hot key.             */
     /** TODO: Option to set left of screen.                                   */
     /**-----------------------------------------------------------------------*/
-    mainWindow.setPosition(size.width-350, 0)
+    mainWindow.setPosition(size.width-350, 0);
+//    mainWindow.setVisibleOnAllWorkspaces(true);
 
     /**-----------------------------------------------------------------------*/
     /** Load the main html page of the app:                                   */
@@ -92,7 +101,7 @@ app.on('ready', function() {
     /** Ensure the main window is always shown top most:                      */
     /**-----------------------------------------------------------------------*/
     var mainOnTop = setInterval(function(){
-//        mainWindow.setAlwaysOnTop(true);
+        mainWindow.setAlwaysOnTop(true);
     }, 1);
 
     /**-----------------------------------------------------------------------*/
@@ -100,9 +109,10 @@ app.on('ready', function() {
     /**-----------------------------------------------------------------------*/
     mainWindow.on('closed', function() {
         /**-------------------------------------------------------------------*/
-        /** Clear the main window on top function:                            */
+        /** Clear the main window on top function and roll up interval timers:*/
         /**-------------------------------------------------------------------*/
         clearInterval(mainOnTop);
+        clearInterval(rollInterval);
 
         /**-------------------------------------------------------------------*/
         /** Dereference the window object:                                    */
@@ -111,6 +121,56 @@ app.on('ready', function() {
         /**-------------------------------------------------------------------*/
         mainWindow = null;
     });
+
+    /**-----------------------------------------------------------------------*/
+    /** Set up the window lost focus event emitter callback:                  */
+    /**-----------------------------------------------------------------------*/
+/*
+    mainWindow.on('blur', function() {
+        var sizeMain = mainWindow.getSize();
+        currentWidth = sizeMain[0];
+        if (currentWidth > 10 ) {
+            rollInterval = setInterval(function () {windowTransition(-5)}, 3);
+        }
+    });
+*/
+
+    /**-----------------------------------------------------------------------*/
+    /** Set up the window gains focus event emitter callback:                 */
+    /**-----------------------------------------------------------------------*/
+/*
+    mainWindow.on('focus', function() {
+        var sizeMain = mainWindow.getSize();
+        currentWidth = sizeMain[0];
+        if (currentWidth < 350 ) {
+            rollInterval = setInterval(function () {windowTransition(5)}, 3);
+        }
+    });
+*/
+
+    /**-----------------------------------------------------------------------*/
+    /** Set up the window gains focus event emitter callback:                 */
+    /**-----------------------------------------------------------------------*/
+/*
+    function windowTransition(inc) {
+        currentWidth = currentWidth + inc;
+        mainWindow.setBounds({
+            x: size.width-currentWidth,
+            y: 0,
+            width: currentWidth,
+            height: size.height,
+        });
+        if (currentWidth <= 10 || currentWidth >= 350) {
+            clearInterval(rollInterval);
+            if (currentWidth <= 10) {
+                mainWindow.webContents.send('rolled');
+            }
+            else {
+                mainWindow.webContents.send('unrolled');
+            }
+        }
+    }
+*/
 
     /**************************************************************************/
     /**                                                                       */
@@ -140,7 +200,7 @@ app.on('ready', function() {
         height: finalHeight,
         "skip-taskbar": true,
         frame: false,
-        transparent: true,
+        transparent: false,
         show: false
     });
 
@@ -153,7 +213,7 @@ app.on('ready', function() {
         height: finalHeight,
         "skip-taskbar": true,
         frame: false,
-        transparent: true,
+        transparent: false,
         show: false
     });
 
@@ -166,7 +226,7 @@ app.on('ready', function() {
         height: finalHeight,
         "skip-taskbar": true,
         frame: false,
-        transparent: true,
+        transparent: false,
         show: false
     });
 
@@ -179,7 +239,7 @@ app.on('ready', function() {
         height: finalHeight,
         "skip-taskbar": true,
         frame: false,
-        transparent: true,
+        transparent: false,
         show: false
     });
 
@@ -192,7 +252,7 @@ app.on('ready', function() {
         height: finalHeight,
         "skip-taskbar": true,
         frame: false,
-        transparent: true,
+        transparent: false,
         show: false
     });
 
@@ -208,14 +268,13 @@ app.on('ready', function() {
     /**-----------------------------------------------------------------------*/
     /** Load the URIs of the windows:                                         */
     /**-----------------------------------------------------------------------*/
-    calendarWindow.loadUrl('file://' + __dirname + '/calendar.html');
+//    calendarWindow.loadUrl('file://' + __dirname + '/calendar.html');
     dashboardWindow.loadUrl('http://127.0.0.1:3030/sample');
-    tableWindow.loadUrl('file://' + __dirname + '/table.html');
-    learningWindow.loadUrl('file://' + __dirname + '/learning.html');
+//    tableWindow.loadUrl('file://' + __dirname + '/table.html');
+//    learningWindow.loadUrl('file://' + __dirname + '/learning.html');
 //    dashboardWindow.loadUrl('file://' + __dirname + '/dashboard.html');
 //    tableWindow.loadUrl('file://' + __dirname + '/table.html?type=' + type + field + id);
 //    learningWindow.loadUrl('file://' + __dirname + '/learn.html?chunk=' + chunk);
-
 
     /**************************************************************************/
     /**                                                                       */
@@ -257,6 +316,46 @@ app.on('ready', function() {
     /**************************************************************************/
 
     /**-----------------------------------------------------------------------*/
+    /** Set up the window lost focus event emitter callback:                  */
+    /**-----------------------------------------------------------------------*/
+    ipc.on('doRoll', function() {
+        var sizeMain = mainWindow.getSize();
+        currentWidth = sizeMain[0];
+        rollInterval = setInterval(function () {windowTransition(-5)}, 3);
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Set up the window gains focus event emitter callback:                 */
+    /**-----------------------------------------------------------------------*/
+    ipc.on('doUnroll', function() {
+        var sizeMain = mainWindow.getSize();
+        currentWidth = sizeMain[0];
+        rollInterval = setInterval(function () {windowTransition(5)}, 3);
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Set up the window gains focus event emitter callback:                 */
+    /**-----------------------------------------------------------------------*/
+    function windowTransition(inc) {
+        currentWidth = currentWidth + inc;
+        mainWindow.setBounds({
+            x: size.width-currentWidth,
+            y: 0,
+            width: currentWidth,
+            height: size.height,
+        });
+        if (currentWidth == 15 || currentWidth == 350) {
+            clearInterval(rollInterval);
+            if (currentWidth == 15) {
+                mainWindow.webContents.send('rolled');
+            }
+            else {
+                mainWindow.webContents.send('unrolled');
+            }
+        }
+    }
+
+    /**-----------------------------------------------------------------------*/
     /** Process the application quit event by closing all windows and         */
     /** quitting the application:                                             */
     /**-----------------------------------------------------------------------*/
@@ -277,7 +376,17 @@ app.on('ready', function() {
             mainWindow.webContents.send('calendarClose');
         }
         else {
+            calendarWindow.loadUrl('http://' + config.host + ':' + config.port + '/calendar');
             calendarWindow.show();
+/*
+            request('http://127.0.0.1:8888/calendar', function (error, response, body) {
+                if (!error && response.statusCode == 200) {
+                    console.log(body) // Show the HTML for the Google homepage. 
+                    calendarWindow.loadUrl(body);
+                    calendarWindow.show();
+                }
+            })
+*/
         }
     });
 
@@ -315,26 +424,25 @@ app.on('ready', function() {
     /**-----------------------------------------------------------------------*/
     ipc.on('dock', function() {
         console.log('dock');
-/*
-        for (i = 1; i < 10; i++) {
-            mainWindow.setSize(350 * (10 - i) / 10, size.height);
-        }
-*/
     });
 
     /**-----------------------------------------------------------------------*/
     /** Process the search input box enter key event:                         */
     /**-----------------------------------------------------------------------*/
     ipc.on('learning', function(arg) {
-        learningWindow.loadUrl('file://' + __dirname + '/learning.html?search=' + arg);
+        learningWindow.loadUrl('http://' + config.host + ':' + config.port + '/learning.html?search=' + arg);
         learningWindow.show();
     });
 
     /**-----------------------------------------------------------------------*/
     /** Process the master data list item click event:                        */
     /**-----------------------------------------------------------------------*/
-    ipc.on('datatable', function(event, data) {
-        var s = JSON.stringify(data);
+    ipc.on('datatable', function(event, name) {
+        tableWindow.loadUrl('http://' + config.host + ':' + config.port + '/datatable/' + name);
+        tableWindow.show();
+
+/*        var s = JSON.stringify(data);
+        console.log(s);
         fs.writeFile('./arrays.txt', s , function(err) {
             if(err) {
                 return console.log(err);
@@ -344,6 +452,7 @@ app.on('ready', function() {
                 tableWindow.show();
             }
         });
+*/
     });
 
     /**-----------------------------------------------------------------------*/
@@ -371,15 +480,22 @@ app.on('ready', function() {
     /** Process an OS shell command execution event:                          */
     /**-----------------------------------------------------------------------*/
     ipc.on('prefs', function(event, arg) {
-        utilWindow.loadUrl('file://' + __dirname + '/prefs.html');
+        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/prefs.html);
         utilWindow.show();
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Refresh the main window display:                                      */
+    /**-----------------------------------------------------------------------*/
+    ipc.on('refresh', function() {
+        mainWindow.reload();
     });
 
     /**-----------------------------------------------------------------------*/
     /** Process an OS shell command execution event:                          */
     /**-----------------------------------------------------------------------*/
     ipc.on('user', function(event, arg) {
-        utilWindow.loadUrl('file://' + __dirname + '/user.html');
+        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/user.html);
         utilWindow.show();
     });
 
@@ -387,7 +503,7 @@ app.on('ready', function() {
     /** Menu bar click event:                                                 */
     /**-----------------------------------------------------------------------*/
     mb.on('click', function () {
-        console.log('menubar clicked!');
+        mainWindow.setPosition(size.width-350, 0);
     });
 });
 
@@ -405,7 +521,7 @@ var mb = menubar({
     width: 73,
     height: 73,
     index: 'file://' + __dirname + '/main.html',
-    icon: __dirname + '/IconTemplate.png'
+    icon: __dirname + '/images/IconTemplate.png'
 });
 
 mb.on('ready', function ready () {

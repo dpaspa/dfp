@@ -33,22 +33,26 @@ module.exports = {
   /* ------------------------------------------------------------------------ */
   /** Shared server Phembot paths:                                            */
   /* ------------------------------------------------------------------------ */
-  pathRemote: 'q:',   // '/home/dpaspa/Dropbox/Business/aka/qms',
-  pathLogo: 'logo.png',
-  pathEffectors: 'effectors',
-  pathMessengers: 'effectors',
-  pathPhembots: 'phembots',
-  pathReceptors: 'receptors',
-  fileEffector: 'pb.dotm',
+  pathRemoteWin: 'q:',
+  pathRemoteLinux: '/home/dpaspa/Dropbox/Business/aka/qms',
+  pathRemoteMacOS: '/home/dpaspa/Dropbox/Business/aka/qms',
+  pathRemoteLogo: 'logo.png',
+  pathRemoteEffectors: 'effectors',
+  pathRemoteMessengers: 'effectors',
+  pathRemotePhembots: 'phembots',
+  pathRemoteReceptors: 'receptors',
+  fileRemoteEffector: 'pb.dotm',
 
   /* ------------------------------------------------------------------------ */
   /** Local Phembot and receptor queue paths:                                 */
   /* ------------------------------------------------------------------------ */
-  pathLocal: '/home/dpaspa/Dropbox/Business/ipoogi/files', // 'x:/business/ipoogi/files',
-  pathEffectorsIn: 'in/effectors',
-  pathEffectorsOut: 'out/effectors',
-  pathPhembotsIn: 'in/phembots',
-  pathPhembotsOut: 'out/phembots',
-  pathReceptorsIn: 'in/receptors',
-  pathReceptorsOut: 'out/receptors'
+  pathLocalWin: 'x:/business/ipoogi/files',
+  pathLocalLinux: '/home/dpaspa/Dropbox/Business/ipoogi/files',
+  pathLocalMacOS: '/home/dpaspa/Dropbox/Business/ipoogi/files',
+  pathLocalEffectorsIn: 'in/effectors',
+  pathLocalEffectorsOut: 'out/effectors',
+  pathLocalPhembotsIn: 'in/phembots',
+  pathLocalPhembotsOut: 'out/phembots',
+  pathLocalReceptorsIn: 'in/receptors',
+  pathLocalReceptorsOut: 'out/receptors'
 }

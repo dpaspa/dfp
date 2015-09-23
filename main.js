@@ -16,12 +16,15 @@
 /**---------------------------------------------------------------------------*/
 var config = require('./config');
 var drop = require('./drop');
+var util = require('./util');
 
 /**---------------------------------------------------------------------------*/
 /** Declare module level variables included from other node packages:         */
 /**---------------------------------------------------------------------------*/
 var ipc = require('ipc');
 var http = require('http');
+//var querystring = require('querystring');
+var request = require('request');
 var remote = require('remote');
 var notifier = require('node-notifier');
 //var Handlebars = require('handlebars');
@@ -37,8 +40,28 @@ var io = require('socket.io');
 /**---------------------------------------------------------------------------*/
 /** Declare global program variables:                                         */
 /**---------------------------------------------------------------------------*/
+var armedRoll = true;
+var armedUnroll = false;
 var lastdynamic;
 var flipped = false;
+var searchText = '';
+
+/**---------------------------------------------------------------------------*/
+/** Get the OS type and set the paths accordingly:                            */
+/**---------------------------------------------------------------------------*/
+var OSName = util.getOSName();
+if (OSName === "Windows") {
+    var pathLocal = config.pathLocalWin;
+    var pathRemote = config.pathRemoteWin;
+}
+else if (OSName="MacOS") {
+    var pathLocal = config.pathLocalMacOS;
+    var pathRemote = config.pathRemoteMacOS;
+}
+else {
+    var pathLocal = config.pathLocalLinux;
+    var pathRemote = config.pathRemoteLinux;
+}
 
 /******************************************************************************/
 /**                                                                           */
@@ -46,13 +69,13 @@ var flipped = false;
 /**                                                                           */
 /** Get the phembot and master list catalog data for the main page:           */
 /******************************************************************************/
-getListMainPage('cc', 2, true);
-getListMainPage('check', 5, true);
-getListMainPage('do', 5, true);
-getListMainPage('list-master', 3, false);
-getListMainPage('list-working', 3, false);
-getListMainPage('ofi', 2, true);
-getListMainPage('plan', 7, false);
+getListMainPage('cc', 0, true);
+getListMainPage('check', 0, true);
+getListMainPage('do', 0, true);
+getListMainPage('list-master', 0, false);
+getListMainPage('list-working', 0, false);
+getListMainPage('ofi', 0, true);
+getListMainPage('plan', 0, false);
 
 
 /******************************************************************************/
@@ -103,9 +126,50 @@ ipc.on('dashboardClose', function() {
 });
 
 /**---------------------------------------------------------------------------*/
+/** Main window has been rolled up:                                           */
+/**---------------------------------------------------------------------------*/
+ipc.on('rolled', function() {
+    document.getElementById("roll-wrap").style.display = 'block';
+    document.getElementById("roll-wrap").classList.add('activeRoll');
+    document.getElementById("roll-wrap").addEventListener('mouseover', unrollFunction, false);
+});
+
+/**---------------------------------------------------------------------------*/
+/** Main window has been unrolled:                                            */
+/**---------------------------------------------------------------------------*/
+ipc.on('unrolled', function() {
+    document.getElementById("roll-wrap").style.display = 'none';
+    document.getElementById("roll-wrap").classList.remove('activeRoll');
+    document.addEventListener('mouseleave', rollFunction, false);
+});
+
+
+var rollFunction = function (e) {
+    document.removeEventListener('mouseleave', rollFunction, false);
+    ipc.send('doRoll');
+};
+
+document.addEventListener('mouseleave', rollFunction, false);
+
+
+var unrollFunction = function (e) {
+    document.getElementById("roll-wrap").removeEventListener('mouseover', unrollFunction, false);
+    ipc.send('doUnroll');
+
+};
+
+document.getElementById("roll-wrap").addEventListener('mouseover', unrollFunction, false);
+
+/**---------------------------------------------------------------------------*/
 /** Body event. Used to check for a phembot or list-catlog selection:         */
 /**---------------------------------------------------------------------------*/
-document.body.addEventListener('click', function(e){
+document.body.addEventListener('click', function(e) {
+    /**-----------------------------------------------------------------------*/
+    /** Stop the event bubbling through the application so it can be handled  */
+    /** exclusively in the local code below:                                  */
+    /**-----------------------------------------------------------------------*/
+    e.preventDefault();
+
     /**-----------------------------------------------------------------------*/
     /** Get the listener event target html object and check it is valid:      */
     /**-----------------------------------------------------------------------*/
@@ -118,12 +182,6 @@ document.body.addEventListener('click', function(e){
     /**-----------------------------------------------------------------------*/
     var ref = el.target;
     if (!ref) return;
-
-    /**-----------------------------------------------------------------------*/
-    /** Stop the event bubbling through the application so it can be handled  */
-    /** exclusively in the local code below:                                  */
-    /**-----------------------------------------------------------------------*/
-    e.preventDefault();
 
     /**-----------------------------------------------------------------------*/
     /** Get the location of the 'underscore' character which separates the    */
@@ -169,6 +227,27 @@ document.getElementById('act-label').addEventListener('click', function() {
 })
 
 /**---------------------------------------------------------------------------*/
+/** Menu cart icon event. Used to render the cart window:                     */
+/**---------------------------------------------------------------------------*/
+document.getElementById('cart-icon').addEventListener('click', function() {
+    /**-----------------------------------------------------------------------*/
+    /** Toggle the label display and send the event to the renderer process:  */
+    /**-----------------------------------------------------------------------*/
+    ipc.send('cart');
+})
+
+/**---------------------------------------------------------------------------*/
+/** Menu calender icon event. Used to render the new calendar window:         */
+/**---------------------------------------------------------------------------*/
+document.getElementById('cal-icon').addEventListener('click', function() {
+    /**-----------------------------------------------------------------------*/
+    /** Toggle the label display and send the event to the renderer process:  */
+    /**-----------------------------------------------------------------------*/
+    document.getElementById("cal-label").classList.add('activeLabel');
+    ipc.send('calendar');
+})
+
+/**---------------------------------------------------------------------------*/
 /** Calender label event. Used to render the new calendar window:             */
 /**---------------------------------------------------------------------------*/
 document.getElementById('cal-label').addEventListener('click', function() {
@@ -183,20 +262,43 @@ document.getElementById('cal-label').addEventListener('click', function() {
 /** Chat network button events:                                               */
 /**---------------------------------------------------------------------------*/
 document.getElementById('chat-external').addEventListener('click', function() {
+    document.getElementById('chat-internal-select').style.display = 'none';
+    document.getElementById('chat-external-select').style.display = 'block';
+    document.getElementById('chat-support-select').style.display = 'none';
     document.getElementById('chat-background').classList.add('chatExternal');
     document.getElementById('chat-background').classList.remove('chatInternal');
     document.getElementById('chat-background').classList.remove('chatSupport');
 });
 document.getElementById('chat-internal').addEventListener('click', function() {
+    document.getElementById('chat-internal-select').style.display = 'block';
+    document.getElementById('chat-external-select').style.display = 'none';
+    document.getElementById('chat-support-select').style.display = 'none';
+    document.getElementById('chat-background').classList.add('chatExternal');
     document.getElementById('chat-background').classList.remove('chatExternal');
     document.getElementById('chat-background').classList.add('chatInternal');
     document.getElementById('chat-background').classList.remove('chatSupport');
 });
 document.getElementById('chat-support').addEventListener('click', function() {
+    document.getElementById('chat-internal-select').style.display = 'none';
+    document.getElementById('chat-external-select').style.display = 'none';
+    document.getElementById('chat-support-select').style.display = 'block';
     document.getElementById('chat-background').classList.remove('chatExternal');
     document.getElementById('chat-background').classList.remove('chatInternal');
     document.getElementById('chat-background').classList.add('chatSupport');
 });
+
+/**---------------------------------------------------------------------------*/
+/** Menu chat icon event. Used to display the chat box on the dfp window:     */
+/**---------------------------------------------------------------------------*/
+document.getElementById('chat-icon').addEventListener('click', function() {
+    /**-----------------------------------------------------------------------*/
+    /** Toggle the label display, show the chat div and hide the dynamic      */
+    /** content div:                                                          */
+    /**-----------------------------------------------------------------------*/
+    setDisplayContext('dynamic-chat');
+    flipPanel();
+    document.querySelector( "#nav-toggle" ).classList.toggle( "active" );
+})
 
 /**---------------------------------------------------------------------------*/
 /** Chat label event. Used to display the chat box on the dfp window:         */
@@ -206,11 +308,11 @@ document.getElementById('chat-label').addEventListener('click', function() {
     /** Toggle the label display, show the chat div and hide the dynamic      */
     /** content div:                                                          */
     /**-----------------------------------------------------------------------*/
-    if (document.getElementById("chat-form").offsetParent === null) {
-        setDisplayContext('dynamic-chat');
+    if (document.getElementById("chat-label").classList.contains('activeLabel')) {
+        setDisplayContext('dynamic-dyno');
     }
     else {
-        setDisplayContext('dynamic-dyno');
+        setDisplayContext('dynamic-chat');
     }
 })
 
@@ -230,6 +332,17 @@ document.getElementById('chat-close').addEventListener('click', function() {
 /**---------------------------------------------------------------------------*/
 document.getElementById('check-label').addEventListener('click', function() {
     setDisplayContext('check');
+})
+
+/**---------------------------------------------------------------------------*/
+/** Menu dashboard icon click event. Used to render the new dashboard window: */
+/**---------------------------------------------------------------------------*/
+document.getElementById('dash-icon').addEventListener('click', function() {
+    /**-----------------------------------------------------------------------*/
+    /** Toggle the label display and send the event to the renderer process:  */
+    /**-----------------------------------------------------------------------*/
+    document.getElementById("dash-label").classList.add('activeLabel');
+    ipc.send('dashboard');
 })
 
 /**---------------------------------------------------------------------------*/
@@ -285,6 +398,35 @@ document.getElementById('dyno').addEventListener('drop', function(e) {
 });
 
 /**---------------------------------------------------------------------------*/
+/** Menu learn icon event. Used to render the learning window:                */
+/**---------------------------------------------------------------------------*/
+document.getElementById('learn-icon').addEventListener('click', function() {
+    /**-----------------------------------------------------------------------*/
+    /** Toggle the label display and send the event to the renderer process:  */
+    /**-----------------------------------------------------------------------*/
+    setDisplayContext('dynamic-learn');
+    flipPanel();
+    document.querySelector( "#nav-toggle" ).classList.toggle( "active" );
+//    ipc.send('learning');
+})
+
+/**---------------------------------------------------------------------------*/
+/** Chat label event. Used to display the chat box on the dfp window:         */
+/**---------------------------------------------------------------------------*/
+document.getElementById('learn-label').addEventListener('click', function() {
+    /**-----------------------------------------------------------------------*/
+    /** Toggle the label display, show the chat div and hide the dynamic      */
+    /** content div:                                                          */
+    /**-----------------------------------------------------------------------*/
+    if (document.getElementById("learn-label").classList.contains('activeLabel')) {
+        setDisplayContext('dynamic-dyno');
+    }
+    else {
+        setDisplayContext('dynamic-learn');
+    }
+})
+
+/**---------------------------------------------------------------------------*/
 /** List label event. Used to display the master data list catalog:           */
 /**---------------------------------------------------------------------------*/
 document.getElementById('list-label').addEventListener('click', function() {
@@ -294,7 +436,13 @@ document.getElementById('list-label').addEventListener('click', function() {
 /**---------------------------------------------------------------------------*/
 /** Message chat event. Used to add the message to the message queue display: */
 /**---------------------------------------------------------------------------*/
-document.getElementById('m-send').addEventListener('click', function() {
+document.getElementById('m-send').addEventListener('click', function(e) {
+    /**-----------------------------------------------------------------------*/
+    /** Stop the event bubbling through the application so it can be handled  */
+    /** exclusively in the local code below:                                  */
+    /**-----------------------------------------------------------------------*/
+    e.preventDefault();
+
     /**-----------------------------------------------------------------------*/
     /** Send the chat message to the server via a socket:                     */
     /**-----------------------------------------------------------------------*/
@@ -328,7 +476,7 @@ document.getElementById('plan-label').addEventListener('click', function() {
 /**---------------------------------------------------------------------------*/
 /** Preferences icon event. Used to display the settings screen:              */
 /**---------------------------------------------------------------------------*/
-document.getElementById('prefs-label').addEventListener('click', function() {
+document.getElementById('prefs-icon').addEventListener('click', function() {
     /**-----------------------------------------------------------------------*/
     /** Re-render the handlebars templates with the new object data:          */
     /**-----------------------------------------------------------------------*/
@@ -346,10 +494,17 @@ document.getElementById('prefs-label').addEventListener('click', function() {
 /**---------------------------------------------------------------------------*/
 document.getElementById('search-key').addEventListener('keydown', function(e) {
     if (e.keyCode === 13) {
-        var searchText = document.getElementById('search-key').value;
-        ipc.send('learning', searchText);
+        e.preventDefault();
+        searchText = document.getElementById('search-key').value;
+        document.getElementById('learn-title').innerHTML = '<h2>' + searchText + '</h2>';
+        document.getElementById('learn-detail').innerHTML = '<p>' + searchText + '</p>';
+        setDisplayContext('dynamic-learn');
     }
 })
+
+document.getElementById('learn-more').addEventListener('click', function() {
+    ipc.send('learning', searchText);
+});
 
 document.querySelector( "#nav-toggle" ).addEventListener( "click", function() {
     this.classList.toggle( "active" );
@@ -369,7 +524,7 @@ function flipPanel() {
 /**---------------------------------------------------------------------------*/
 /** User icon click event. Used to display the user profile and login details.*/
 /**---------------------------------------------------------------------------*/
-document.getElementById('user-label').addEventListener('click', function() {
+document.getElementById('user-icon').addEventListener('click', function() {
     ipc.send('user');
     setDisplayContext('do');
 });
@@ -395,7 +550,7 @@ document.getElementById('user-label').addEventListener('click', function() {
 /** Application quit icon click event to close the application by sending the */
 /** event to the renderer process to close down gracefully:                   */
 /**---------------------------------------------------------------------------*/
-document.getElementById('quit-label').addEventListener('click', function() {
+document.getElementById('quit-icon').addEventListener('click', function() {
     ipc.send('quit');
 });
 
@@ -415,6 +570,8 @@ function setDisplayContext(context) {
         document.getElementById("chat-label").classList.add('activeLabel');
         document.getElementById('chat').style.display = 'block';
         document.getElementById('dyno').style.display = 'none';
+        document.getElementById('learn').style.display = 'none';
+        document.getElementById("learn-label").classList.remove('activeLabel');
     }
 
     /**-----------------------------------------------------------------------*/
@@ -425,6 +582,20 @@ function setDisplayContext(context) {
         document.getElementById("chat-label").classList.remove('activeLabel');
         document.getElementById('chat').style.display = 'none';
         document.getElementById('dyno').style.display = 'block';
+        document.getElementById('learn').style.display = 'none';
+        document.getElementById("learn-label").classList.remove('activeLabel');
+    }
+
+    /**-----------------------------------------------------------------------*/
+    /** Close the chat box and hide the dyno if learning required:            */
+    /**-----------------------------------------------------------------------*/
+    else if (context === 'dynamic-learn') {
+        lastdynamic = 'learn';
+        document.getElementById("chat-label").classList.remove('activeLabel');
+        document.getElementById('chat').style.display = 'none';
+        document.getElementById('dyno').style.display = 'none';
+        document.getElementById('learn').style.display = 'block';
+        document.getElementById("learn-label").classList.add('activeLabel');
     }
 
     /**-----------------------------------------------------------------------*/
@@ -445,10 +616,14 @@ function setDisplayContext(context) {
         /**-------------------------------------------------------------------*/
         /** Hide everything in the top part as not just a dyno change:        */
         /**-------------------------------------------------------------------*/
-        document.getElementById('act-content').style.display = 'none';
+        document.getElementById('act-cc-content').style.display = 'none';
+        document.getElementById('act-ofi-content').style.display = 'none';
+        document.getElementById('act-separator').style.display = 'none';
         document.getElementById('check-content').style.display = 'none';
         document.getElementById('do-content').style.display = 'none';
-        document.getElementById('list-content').style.display = 'none';
+        document.getElementById('list-working-content').style.display = 'none';
+        document.getElementById('list-separator').style.display = 'none';
+        document.getElementById('list-master-content').style.display = 'none';
         document.getElementById('plan-content').style.display = 'none';
         document.getElementById('searcher').style.display = 'none';
     }
@@ -462,8 +637,12 @@ function setDisplayContext(context) {
         /**-------------------------------------------------------------------*/
         case ('act'):
             checkdynamic = true;
+            document.getElementById('pane-title').innerHTML = '<h2>Opportunity For Improvement (OFI)</h2>';
             document.getElementById("act-label").classList.add('activeLabel');
-            document.getElementById('act-content').style.display = 'block';
+            document.getElementById('act-cc-content').style.display = 'block';
+            document.getElementById('act-ofi-content').style.display = 'block';
+            document.getElementById('act-separator').style.display = 'block';
+            document.getElementById('act-separator-title').innerHTML = '<h2>Controlling Change (CC)</h2>';
             document.getElementById('searcher').style.display = 'block';
             break;
 
@@ -472,6 +651,7 @@ function setDisplayContext(context) {
         /**-------------------------------------------------------------------*/
         case ('check'):
             checkdynamic = true;
+            document.getElementById('pane-title').innerHTML = '<h2>Check completed tasks</h2>';
             document.getElementById("check-label").classList.add('activeLabel');
             document.getElementById('check-content').style.display = 'block';
             document.getElementById('searcher').style.display = 'block';
@@ -482,6 +662,7 @@ function setDisplayContext(context) {
         /**-------------------------------------------------------------------*/
         case ('do'):
             checkdynamic = true;
+            document.getElementById('pane-title').innerHTML = '<h2>Upcoming tasks</h2>';
             document.getElementById("do-label").classList.add('activeLabel');
             document.getElementById('do-content').style.display = 'block';
             document.getElementById('searcher').style.display = 'block';
@@ -501,8 +682,12 @@ function setDisplayContext(context) {
         /**-------------------------------------------------------------------*/
         case ('list'):
             checkdynamic = true;
+            document.getElementById('pane-title').innerHTML = '<h2>Working Lists</h2>';
             document.getElementById("list-label").classList.add('activeLabel');
-            document.getElementById('list-content').style.display = 'block';
+            document.getElementById('list-working-content').style.display = 'block';
+            document.getElementById('list-master-content').style.display = 'block';
+            document.getElementById('list-separator').style.display = 'block';
+            document.getElementById('list-separator-title').innerHTML = '<h2>Master Lists</h2>';
             document.getElementById('searcher').style.display = 'block';
             break;
 
@@ -512,6 +697,7 @@ function setDisplayContext(context) {
         /**-------------------------------------------------------------------*/
         case ('plan'):
             checkdynamic = true;
+            document.getElementById('pane-title').innerHTML = '<h2>Quality Assurance Plan</h2>';
             document.getElementById("plan-label").classList.add('activeLabel');
             document.getElementById('plan-content').style.display = 'block';
             document.getElementById('searcher').style.display = 'block';
@@ -550,19 +736,20 @@ function setDisplayContext(context) {
 /** which is every 30 seconds or two times per minute. Fast enough:           */
 /**---------------------------------------------------------------------------*/
 var rule = new schedule.RecurrenceRule();
-rule.second = [0, 30];
+//rule.second = [0, 30];
+rule.second = [0];
 
 /**---------------------------------------------------------------------------*/
 /** Schedule a job on the 30 second rule to update the main dfp window lists: */
 /**---------------------------------------------------------------------------*/
 schedule.scheduleJob(rule, function(){
-    getListMainPage('cc', 2, true);
-    getListMainPage('check', 5, true);
-    getListMainPage('do', 5, true);
-    getListMainPage('list-master', 3, false);
-    getListMainPage('list-working', 3, false);
-    getListMainPage('ofi', 2, true);
-    getListMainPage('plan', 7, false);
+    getListMainPage('cc', 0, true);
+    getListMainPage('check', 0, true);
+    getListMainPage('do', 0, true);
+    getListMainPage('list-master', 0, false);
+    getListMainPage('list-working', 0, false);
+    getListMainPage('ofi', 0, true);
+    getListMainPage('plan', 0, false);
 });
 
 /**---------------------------------------------------------------------------*/
@@ -571,7 +758,7 @@ schedule.scheduleJob(rule, function(){
 /**                                                                           */
 /** Setup the fs.watch object to monitor the local files directory.           */
 /**---------------------------------------------------------------------------*/
-watch.watchTree(config.pathLocal + '/' + config.pathReceptorsIn, function (f, curr, prev) {
+watch.watchTree(pathLocal + '/' + config.pathLocalReceptorsIn, function (f, curr, prev) {
     /**-----------------------------------------------------------------------*/
     /** Assume there will be nothing to do:                                   */
     /**-----------------------------------------------------------------------*/
@@ -616,8 +803,14 @@ watch.watchTree(config.pathLocal + '/' + config.pathReceptorsIn, function (f, cu
         /** The file was changed in some way. Better process it:              */
         /**-------------------------------------------------------------------*/
 //        var parser = new xml2js.Parser();
-        fs.readFile(f, function(err, data) {
-            postData('list', data);
+        fs.readFile(f, 'utf8', function(err, data) {
+            if (err) {
+                console.log(err);
+            }
+            else {
+                var obj = JSON.parse(data);
+                postData('list', obj);
+            }
         });
     }
 });
@@ -688,56 +881,56 @@ function getListURI(type, num, name) {
         /** Opportunity For Improvement (OFI):                                */
         /**-------------------------------------------------------------------*/
         case ('cc'):
-            uri = '/listCC/' + num;
+            uri = '/listActCC/' + num;
             break;
 
         /**-------------------------------------------------------------------*/
         /** Phemobots pending checking prior to completion:                   */
         /**-------------------------------------------------------------------*/
         case ('check'):
-            uri = '/listPhembotsCheck/' + num;
+            uri = '/listCheck/' + num;
             break;
 
         /**-------------------------------------------------------------------*/
         /** Do, or phembot task list:                                         */
         /**-------------------------------------------------------------------*/
         case ('do'):
-            uri = '/listPhembots/' + num;
+            uri = '/listDo/' + num;
             break;
 
         /**-------------------------------------------------------------------*/
         /** Master list:                                                      */
         /**-------------------------------------------------------------------*/
         case ('list-master'):
-            uri = '/catalogLists/master/' + num;
+            uri = '/catalogLists/master';
             break;
 
         /**-------------------------------------------------------------------*/
         /** Master list:                                                      */
         /**-------------------------------------------------------------------*/
         case ('list-working'):
-            uri = '/catalogLists/working/' + num;
+            uri = '/catalogLists/working';
             break;
 
         /**-------------------------------------------------------------------*/
         /** Opportunity For Improvement (OFI):                                */
         /**-------------------------------------------------------------------*/
         case ('ofi'):
-            uri = '/listOFI/' + num;
+            uri = '/listActOFI/' + num;
             break;
 
         /**-------------------------------------------------------------------*/
         /** Quality Assurance Plan (list of Quality Controls):                */
         /**-------------------------------------------------------------------*/
         case ('plan'):
-            uri = '/planQualityAssurance/' + num;
+            uri = '/listPlan/' + num;
             break;
 
         /**-------------------------------------------------------------------*/
         /** Unknown type:                                                     */
         /**-------------------------------------------------------------------*/
         default:
-            uri = '/lists/' + name;// + '/' + num;
+            uri = '/' + name;// + '/' + num;
     }
 
     /**-----------------------------------------------------------------------*/
@@ -833,7 +1026,7 @@ function getListDetailPage(name, num) {
     /**-----------------------------------------------------------------------*/
     /** Get the requested page list URI to request the data from the server:  */
     /**-----------------------------------------------------------------------*/
-    var uri = getListURI('', num, name);
+    var uri = '/datatable/:' + name;
 
     /**-----------------------------------------------------------------------*/
     /** Set the http options to be used by the request:                       */
@@ -862,20 +1055,10 @@ function getListDetailPage(name, num) {
         /**-------------------------------------------------------------------*/
         response.on('end', function() {
             /**---------------------------------------------------------------*/
-            /** If a phembot and task due notifications are required then     */
-            /** check if any phembots are due soon and require an OS native   */
-            /** notification message:                                         */
-            /** TODO: Won't work with limited list. Need separate API call    */
-            /** for pending phembots regardless of how many:                  */
-            /**---------------------------------------------------------------*/
-//            var data = {};
-//            data[type] = JSON.parse(body);
-            var data = JSON.parse(body);
-
-            /**---------------------------------------------------------------*/
             /** Display the detail list form:                                 */
             /**---------------------------------------------------------------*/
-            ipc.send('datatable', data);
+//            var data = JSON.parse(body);
+            ipc.send('datatable', name);
         });
     }
 
@@ -894,50 +1077,109 @@ function getListDetailPage(name, num) {
 /** @param {string} type     The type of list object.                         */
 /** @param {number} data     The list data to post.                           */
 /**---------------------------------------------------------------------------*/
-function postData(type, data){
+function postData(type, obj){
     /**-----------------------------------------------------------------------*/
     /** Set the API URI to post the data to:                                  */
     /**-----------------------------------------------------------------------*/
+    var body = JSON.stringify(obj);
     if (type === 'phembot') {
-        var uri = '/listPhembots';
+        var uriServer = '/listPhembots';
     }
     else {
-        var uri = '/lists';
+        var uriServer = '/lists';
     }
+
+    var options = {
+        uri: 'http://' + config.host + ':' + config.port + uriServer,
+        method: 'POST',
+        headers: {},
+        body: body
+    };
+
+    options.headers['Content-Type'] = 'application/json';
+    options.headers['Content-Length'] = Buffer.byteLength(body);
+
+    console.log('posting data ' + body);
+
+    request.post(options, function (error, response, body) {
+        if (error) {
+            console.log(error);
+        }
+        else if (!error && response.statusCode == 200) {
+            console.log(body) // Print the shortened url.
+        }
+    });
+}
 
     /**-----------------------------------------------------------------------*/
     /** Set the http options to be used by the request:                       */
     /**-----------------------------------------------------------------------*/
+/*
     var options = {
-       host: config.host,
-       port: config.port,
-       method: 'POST',
-       path: uri
+        uri: config.host + ':' + config.port + uriServer,
+        method: 'POST',
+        headers: {},
+        path: uri
     };
 
+*/
     /**-----------------------------------------------------------------------*/
     /** Define the callback function used to deal with the response:          */
     /**-----------------------------------------------------------------------*/
-    var callback = function (response) {
+//    var callback = function (response) {
         /**-------------------------------------------------------------------*/
         /** Report any error:                                                 */
         /**-------------------------------------------------------------------*/
-        response.on('end', function() {
+//        response.on('end', function() {
             /**---------------------------------------------------------------*/
             /** Report the response:                                          */
             /**---------------------------------------------------------------*/
-            console.log(response);
-        });
-    }
+//            console.log(response);
+//        });
+//    }
 
     /**-----------------------------------------------------------------------*/
-    /** Make a request to the server:                                         */
+    /** Make a request to the server with JSON encoding:                      */
     /**-----------------------------------------------------------------------*/
-    var req = http.request (options, callback);
-    req.body = data;
-    req.end();
-    console.log('posted to ' + uri);
+//    var req = http.request (options, callback);
+//    options.headers['Content-Type'] = 'application/json';
+/*    options.headers['Content-Type'] = 'X-www-form-urlencoded'; // 'application/json';
+    var data = querystring.stringify({
+        'compilation_level' : 'ADVANCED_OPTIMIZATIONS',
+        'output_format': 'json',
+        'output_info': 'compiled_code',
+        'warning_level' : 'QUIET',
+        'js_code' : JSON.stringify(obj)
+    });
+*/
+
+//    var data = JSON.stringify(obj);
+//    req.data = JSON.stringify(data);
+//    req.body = data;
+//    console.log(req.body);
+//    options.headers['Content-Length'] = Buffer.byteLength(JSON.stringify(data));
+//    console.log(body);
+//    console.log(JSON.stringify(data));
+//    req.write(JSON.stringify(data));
+//    req.body = data;
+//    req.write(data);
+//    req.body = JSON.stringify(obj);
+//    req.end();
+
+/*     console.log(config.host + ':' + config.port + uri);
+
+    request.post({
+      url: config.host + ':' + config.port + uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(data)
+      },
+      body: data
+    }, function(err, response, body){
+      console.log(body);
+    });
 }
+*/
 
 /*
 function DrawSpiral(mod) {

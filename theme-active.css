@@ -1,0 +1,309 @@
+/**---------------------------------------------------------------------------*/
+/**                       Copyright © 2015 ipoogi.com                         */
+/**                                                                           */
+/** This is the theme style sheet for the Electron application for the        */
+/** dfp (desktop focal point) application. The dfp is the desktop client      */
+/** application for integrating the user's workflows into the QMS back end.   */
+/*----------------------------------------------------------------------------*/
+/** Automatically generated file. Do not edit.                                */
+/**---------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------------------------------------*/
+/* Main background */
+/*----------------------------------------------------------------------------*/
+body {
+    background-color: #1E1E1E;
+    color: #787878;
+}
+#pane-title {
+    background-color: #1E1E1E;
+    color: #787878;
+}
+#pending {
+    background-color: #1E1E1E;
+    color: #787878;
+}
+.activeRoll {
+    background-color: #1E1E1E;
+    color: #787878;
+}
+.content-separator {
+    background-color: #1E1E1E;
+    color: #787878;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Menu links */
+/*----------------------------------------------------------------------------*/
+a:link, a:visited {
+    color: #787878;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Selected label */
+/*----------------------------------------------------------------------------*/
+.activeLabel {
+    background-color: #BABABA;
+}
+#nav-toggle span, #nav-toggle span:before, #nav-toggle span:after {
+    background-color: #BABABA;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Selected label */
+/*----------------------------------------------------------------------------*/
+.activeLabel a {
+    color: #454545;
+}
+#nav-toggle.active span {
+    color: #454545;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Hover over PDCA menu item */
+/*----------------------------------------------------------------------------*/
+.menu-btn:hover {
+    background-color: #979797;
+    color: #525252;
+}
+.menu-item:hover {
+    background-color: #979797;
+    color: #525252;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Hover over main menu item */
+/*----------------------------------------------------------------------------*/
+.menu-icon:hover {
+    background-color: #BCBCBC;
+    color: #474747;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Alternate dark row */
+/*----------------------------------------------------------------------------*/
+.list-task li:nth-child(odd) {
+    background-color: #363636;
+    color: #8A8A8A;
+}
+.list-task li:nth-child(odd) a:link {
+    background-color: #363636;
+    color: #8A8A8A;
+}
+.list-task li:nth-child(odd) a:visited {
+    background-color: #363636;
+    color: #8A8A8A;
+}
+.list li:nth-child(odd) {
+    background-color: #363636;
+    color: #8A8A8A;
+}
+.list li:nth-child(odd) a:link {
+    background-color: #363636;
+    color: #8A8A8A;
+}
+.list li:nth-child(odd) a:visited {
+    background-color: #363636;
+    color: #8A8A8A;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Alternate dark row hover */
+/*----------------------------------------------------------------------------*/
+.list-task li:nth-child(odd) a:hover {
+    background-color: #363636;
+    color: #C5C5C5;
+}
+.list li:nth-child(odd) a:hover {
+    background-color: #363636;
+    color: #C5C5C5;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Alternate light row */
+/*----------------------------------------------------------------------------*/
+.list-task li:nth-child(even) {
+    background-color: #494949;
+    color: #868686;
+}
+.list-task li:nth-child(even) a:link {
+    background-color: #494949;
+    color: #868686;
+}
+.list-task li:nth-child(even) a:visited {
+    background-color: #494949;
+    color: #868686;
+}
+.list li:nth-child(even) {
+    background-color: #494949;
+    color: #868686;
+}
+.list li:nth-child(even) a:link {
+    background-color: #494949;
+    color: #868686;
+}
+.list li:nth-child(even) a:visited {
+    background-color: #494949;
+    color: #868686;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Alternate light row hover */
+/*----------------------------------------------------------------------------*/
+.list-task li:nth-child(even) a:hover {
+    background-color: #494949;
+    color: #D1D1D1;
+}
+.list li:nth-child(even) a:hover {
+    background-color: #494949;
+    color: #D1D1D1;
+}
+
+/*----------------------------------------------------------------------------*/
+/* High Priority */
+/*----------------------------------------------------------------------------*/
+.list-task li:nth-child(1) {
+    background-color: #A40000;
+    color: #DC9E9C;
+}
+.list-task li:nth-child(1) p {
+    background-color: #A40000;
+    color: #DC9E9C;
+}
+.list-task li:nth-child(1) a:link {
+    background-color: #A40000;
+    color: #DC9E9C;
+}
+.list-task li:nth-child(1) a:visited {
+    background-color: #A40000;
+    color: #DC9E9C;
+}
+
+/*----------------------------------------------------------------------------*/
+/* High Priority Hover */
+/*----------------------------------------------------------------------------*/
+.list-task li:nth-child(1) a:hover {
+    background-color: #A40000;
+    color: #F4E0E0;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Medium Priority */
+/*----------------------------------------------------------------------------*/
+.list-task li:nth-child(2) {
+    background-color: #FF8205;
+    color: #FFCB97;
+}
+.list-task li:nth-child(2) p {
+    background-color: #FF8205;
+    color: #FFCB97;
+}
+.list-task li:nth-child(2) a:link {
+    background-color: #FF8205;
+    color: #FFCB97;
+}
+.list-task li:nth-child(2) a:visited {
+    background-color: #FF8205;
+    color: #FFCB97;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Medium Priority Hover */
+/*----------------------------------------------------------------------------*/
+.list-task li:nth-child(2) a:hover {
+    background-color: #FF8205;
+    color: #FFF2E5;
+}
+
+/*----------------------------------------------------------------------------*/
+/* List Highlight text */
+/*----------------------------------------------------------------------------*/
+.list-task li:nth-child a:hover {
+    background-color: #7F0000;
+    color: #FEF200;
+}
+.list li:nth-child a:hover {
+    background-color: #7F0000;
+    color: #FEF200;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Progress */
+/*----------------------------------------------------------------------------*/
+.progress {
+    background-color: #228A22;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Search */
+/*----------------------------------------------------------------------------*/
+.search {
+    background-color: #9B9B9B;
+    color: #4B4B4B;
+}
+.search-entry {
+    background-color: #9B9B9B;
+    color: #4B4B4B;
+}
+#messages li:nth-child(odd) {
+    background-color: #9B9B9B;
+    color: #4B4B4B;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Chat internal */
+/*----------------------------------------------------------------------------*/
+.chatInternal {
+    background-color: #C7FF8F;
+    color: #366C00;
+}
+.roll-do {
+    background-color: #C7FF8F;
+    color: #366C00;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Chat external */
+/*----------------------------------------------------------------------------*/
+.chatExternal {
+    background-color: #FFC1E0;
+    color: #8E0047;
+}
+.roll-chat {
+    background-color: #FFC1E0;
+    color: #8E0047;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Chat support */
+/*----------------------------------------------------------------------------*/
+.chatSupport {
+    background-color: #ABECFB;
+    color: #087E9A;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Main menu and learning search results background */
+/*----------------------------------------------------------------------------*/
+.back {
+    background-color: #333333;
+    color: #9B9B9B;
+}
+.learn {
+    background-color: #333333;
+    color: #9B9B9B;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Chat send button */
+/*----------------------------------------------------------------------------*/
+#chat-form button {
+    background-color: #006699;
+    color: #B7E7FF;
+}
+.chatClose {
+    background-color: #006699;
+    color: #B7E7FF;
+}
+

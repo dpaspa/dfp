@@ -14,8 +14,28 @@
 /**---------------------------------------------------------------------------*/
 /** Declare module level variables included from local application files:     */
 /**---------------------------------------------------------------------------*/
-var config = require('./config');
+var ipc = require('ipc');                      // Inter-process communication
+var fs = require('fs');
 var shell = require('shelljs');
+var config = require('./config');
+var util = require('./util');
+
+/**---------------------------------------------------------------------------*/
+/** Get the OS type and set the paths accordingly:                            */
+/**---------------------------------------------------------------------------*/
+var OSName = util.getOSName();
+if (OSName === "Windows") {
+    var pathLocal = config.pathLocalWin;
+    var pathRemote = config.pathRemoteWin;
+}
+else if (OSName="MacOS") {
+    var pathLocal = config.pathLocalMacOS;
+    var pathRemote = config.pathRemoteMacOS;
+}
+else {
+    var pathLocal = config.pathLocalLinux;
+    var pathRemote = config.pathRemoteLinux;
+}
 
 /**---------------------------------------------------------------------------*/
 /** Function: processDrop                                                     */
@@ -51,7 +71,18 @@ function processDrop(e) {
             /** Windows office document:                                      */
             /**---------------------------------------------------------------*/
             case 'DOC':
+            case 'DOCM':
             case 'DOCX':
+                document.getElementById('dyno').style.backgroundImage = 
+                                                    'url(./images/colour.gif)';
+                var phembotFile = createPhembot(files[i].path, 'css');
+                shell.exec(
+                    '"' + config.pathOSExec + '/' + config.pathWrite + '"' + 
+                    '\ /q\ /x\ /l"' + pathRemote + '/' + 
+                    config.pathRemoteEffectors + '/' + config.fileRemoteEffector + '"' + 
+                    '\ ' + '"' + phembotFile + '"', {async:true}, function(code, output) {
+                    ipc.send('refresh');
+                });
                 break;
 
             /**---------------------------------------------------------------*/
@@ -122,6 +153,117 @@ function processDrop(e) {
 
 exports.processDrop = processDrop;
 
+/**---------------------------------------------------------------------------*/
+/** Function: createPhembot                                                   */
+/** Creates a phembot to invoke the external OS functionality.                */
+/**                                                                           */
+/** @param {string} type     The type of list object.                         */
+/** @param {number} data     The list data to post.                           */
+/**---------------------------------------------------------------------------*/
+function createPhembot (receptor, secondMessenger) {
+    /**-----------------------------------------------------------------------*/
+    /** Set the API URI to post the data to:                                  */
+    /**-----------------------------------------------------------------------*/
+    var phembot = {
+    'ref': 'T1',
+    'type': 'CAL',
+    'status': 'O',
+    'title': 'Calibration of KA-100 Weighing Balance',
+    'icon': 'cal.png',
+    'receptor': {
+        'ref': 'D67',
+        'type': 'Instruction',
+        'version': 1,
+        'title': 'Product X',
+        'document': receptor
+    },
+    'messenger': {
+        'precedence': [
+            'css'
+        ],
+        'css': {
+            'effector': 'Word',
+            'userConfirm': true,
+            'userMessage': 'Overwrite application style sheet?',
+            'save': false,
+            'close': true,
+            'msgData': {
+                'outputPath': '__dirname',
+                'outputFile': '/theme-active.css'
+            }
+        }
+    },
+    'user': {
+        'name': 'David Paspa',
+        'timezone': 'Asia/Singapore',
+        'uriAPI': 'http://localhost:8888/api/',
+        'website': 'http://ipoogi.com',
+        'feedback': 'http://ipoogi.com',
+        'pathOSExec': 'c:/',
+        'pathWrite': 'Program Files/Microsoft Office/Office14/winword',
+        'pathSheet': 'Program Files/Microsoft Office/Office14/excel',
+        'pathRemote': 'q:/',
+        'pathRemoteLogo': 'logo.png',
+        'pathRemoteEffector': 'effectors',
+        'pathRemoteMessengers': 'effectors',
+        'pathRemotePhembots': 'phembots',
+        'pathRemoteReceptors': 'receptors',
+        'fileRemoteEffector': 'pb.dotm',
+        'pathLocal': 'x:/Business/ipoogi',
+        'pathLocalReceptorsIn': 'receptors/in',
+        'pathLocalReceptorsOut': 'receptors/out',
+        'pathLocalPhembotsIn': 'effectors/in',
+        'pathLocalPhembotsOut': 'effectors/out',
+        'pathLocalReceptors': 'x:/business/ipoogi'
+    },
+    "error": {
+        "number": 0,
+        "procedure": "",
+        "message": "",
+        "parameters": []
+    },
+    "history": {
+    }
+}
+
+
+/*
+    var phembot = {
+    contentPayload: {
+        doc: 'D11',
+        logo: 'q:/logo.png',
+        ref: 'P72',
+        title: 'Product x',
+        type: 'BMR',
+        ver: '1',
+        secondMessenger: config.pathRemote + '/' + config.pathMessengers + '/' + secondMessenger + '.dotm',
+        receptor: receptor,
+        saveReceptor: 'False',
+        closeReceptor: 'True'
+    },
+    css: {
+        userConfirm: 'True',
+        userMessage: 'Overwrite application style sheet?',
+        msgData: {
+            outputPath: __dirname + '/theme-active.css'
+        }
+    },
+    contentHistory: {}
+}
+*/
+
+    var phembotFileName = pathRemote + '/' + config.pathRemotePhembots + '/bot' + util.getTimeStamp() + '.json';
+//    var phembotFileName = pathRemote + '/' + config.pathRemotePhembots + '/thenewbot.json';
+    fs.writeFile(phembotFileName, JSON.stringify(phembot), function (err) {
+        if (err) {
+            console.log(err);
+        }
+        else {
+            console.log('Wrote phembot file ' + phembotFileName);
+        }
+    });
+    return phembotFileName;
+}
 // console.log("File " + i + ": (" + (typeof files[i]) + ") : <" + files[i] + " > " +
 // files[i].name + " " + files[i].size + "\n");
 // Assuming xmlDoc is the XML DOM Document

@@ -4,10 +4,20 @@
   <title>ipoogi desktop focal point</title>
   <meta charset="utf-8">
   <link rel="stylesheet" href="main.css">
-  <link rel="stylesheet" href="theme-dark.css" title="dark">
+  <link rel="stylesheet" href="theme-active.css">
+  <!--link rel="stylesheet" href="theme-dark.css" title="dark"-->
   <!--link rel="alternate stylesheet" href="theme-light.css" title="light"-->
 </head>
 <body>
+  <div class="roll-container" id="roll-wrap">
+      <div class="roll-do">
+          3
+      </div>
+      <div class="roll-chat">
+          1
+      </div>
+  </div>
+  </div>
   <div class="app-container" id="site-wrap">
     <div class="menu-top">
       <div class="menu-top-left">
@@ -30,65 +40,76 @@
         </div>
       </div>
     </div>
+  <div id="content-no-scroll">
+    <div id="pane-title">
+        <h2>Upcoming tasks</h2>
+    </div>
     <div class="content-main" id="content-main-panel">
       <div id="plan-content">
-        <h2>Quality Assurance Plan</h2>
         <div id="result-plan">
           <div class="loader">Loading...
           </div>
         </div>
-        <p style="text-align: right"><a href="" target="_blank">click for all &hellip;</a></p>
       </div>
 
       <div id="do-content">
-        <h2>Upcoming tasks</h2>
         <div id="result-do">
           <div class="loader">Loading...
           </div>
         </div>
-        <p style="text-align: right"><a href="" target="_blank">x more pending &hellip;</a></p>
       </div>
 
       <div id="check-content">
-        <h2>Check completed tasks</h2>
         <div id="result-check">
           <div class="loader">Loading...
           </div>
         </div>
-        <p style="text-align: right"><a href="" target="_blank">x more pending &hellip;</a></p>
       </div>
 
-      <div id="act-content">
-          <span><h2>Opportunity For Improvement (OFI)</h2></span><span id="plus-ofi"></span>
+      <div class="content-half-top" id="act-ofi-content">
         <div id="result-ofi">
           <div class="loader">Loading...
           </div>
         </div>
-        <p style="text-align: right"><a href="" target="_blank">x more pending &hellip;</a></p>
-        <br>
-        <h2>Controlling Change (CC)</h2>
+      </div>
+      <div class="content-separator" id="act-separator">
+        <div class="content-separator-pending" id="act-separator-pending">
+          <p><a href="" target="_blank">x more pending &hellip;</a></p>
+        </div>
+        <div class="content-separator-title" id="act-separator-title">
+        </div>
+      </div>
+      <div class="content-half-bottom" id="act-cc-content">
         <div id="result-cc">
           <div class="loader">Loading...
           </div>
         </div>
-        <p style="text-align: right"><a href="" target="_blank">x more pending &hellip;</a></p>
       </div>
 
-      <div id="list-content">
-        <h2>Working Lists</h2>
+      <div class="content-half-top" id="list-working-content">
         <div id="result-list-working">
           <div class="loader">Loading...
           </div>
         </div>
-        <p style="text-align: right"><a href="" target="_blank">click for all &hellip;</a></p>
-        <h2>Master Data Lists</h2>
+      </div>
+      <div class="content-separator" id="list-separator">
+        <div class="content-separator-pending" id="list-separator-pending">
+          <p><a href="" target="_blank">x more pending &hellip;</a></p>
+        </div>
+        <div class="content-separator-title" id="list-separator-title">
+        </div>
+      </div>
+      <div class="content-half-bottom" id="list-master-content">
         <div id="result-list-master">
           <div class="loader">Loading...
           </div>
         </div>
-        <p style="text-align: right"><a href="" target="_blank">click for all &hellip;</a></p>
       </div>
     </div>
+    <div id="pending">
+        <p><a href="" target="_blank">x more pending &hellip;</a></p>
+    </div>
+  </div>
 
     <div class="search" id="searcher">
       <form>
@@ -111,6 +132,12 @@
                         <button class="chatSupport" id="chat-support">Support</button>
                         <button class="chatClose" id="chat-close">Close</button>
                     </div>
+                    <div class="chat-select">
+                        <div class="chatInternal" id="chat-internal-select"></div>
+                        <div class="chatExternal" id="chat-external-select"></div>
+                        <div class="chatSupport" id="chat-support-select"></div>
+                        <div class="chatClose" id="chat-close-select"></div>
+                    </div>
                     <div class="chat-messages chatInternal" id="chat-background">
                       <ul id="messages"></ul>
                     </div>
@@ -118,12 +145,13 @@
                       <input id="m" autocomplete="off" /><button id="m-send">Send</button>
                     </form>
                   </div>
-                  <div class="learn-panel">
-                      <div id="result-learn">
-                        <div class="loader">Loading...
-                        </div>
-                      </div>
-                      <p style="text-align: right"><a href="" target="_blank">Click for more&hellip;</a></p>
+                  <div class="learn-panel" id="learn">
+                    <div id="learn-title">
+                    </div>
+                    <div id="learn-detail">
+                    </div>
+                    <div id="learn-link"><p style="text-align: right" id="learn-more"><a href="" target="_blank">Learn more&hellip;</a></p>
+                    </div>
                   </div>
                 </div>
             </div>
@@ -133,22 +161,25 @@
                     <div class="menu-icon" id="chat-icon">
                       <a href="#" class="menu-btn"><img src="./images/chat.png"></a>
                     </div>
-                    <div class="menu-icon" id="dashboard-icon">
+                    <div class="menu-icon" id="dash-icon">
                       <a href="#" class="menu-btn"><img src="./images/chart.png"></a>
                     </div>
-                    <div class="menu-icon" id="calendar-icon">
+                    <div class="menu-icon" id="cal-icon">
                       <a href="#" class="menu-btn"><img src="./images/calendar.png"></a>
                     </div>
                     <div class="menu-icon" id="cart-icon">
                       <a href="#" class="menu-btn"><img src="./images/cart.png"></a>
                     </div>
-                    <div class="menu-icon" id="user-label">
+                    <div class="menu-icon" id="learn-icon">
+                      <a href="#" class="menu-btn"><img src="./images/learn.png"></a>
+                    </div>
+                    <div class="menu-icon" id="user-icon">
                       <a href="#" class="menu-btn"><img src="./images/user.png"></a>
                     </div>
-                    <div class="menu-icon" id="prefs-label">
-                      <a href="#" class="menu-btn"><img src="./images/prefs2.png"></a>
+                    <div class="menu-icon" id="prefs-icon">
+                      <a href="#" class="menu-btn"><img src="./images/prefs3.png"></a>
                     </div>
-                    <div class="menu-icon" id="quit-label">
+                    <div class="menu-icon" id="quit-icon">
                       <a href="#" class="menu-btn"><img src="./images/exit.png"></a>
                     </div>
                 </div>
@@ -159,6 +190,9 @@
       <div class="menu-bottom-left">
         <div class="menu-item" id="chat-label">
           <a href="#" class="menu-btn">Chat</a>
+        </div>
+        <div class="menu-item" id="learn-label">
+          <a href="#" class="menu-btn">Learn</a>
         </div>
         <div class="menu-item" id="cal-label">
           <a href="#" class="menu-btn">Calendar</a>
@@ -207,7 +241,7 @@
   </script>
 
   <script id="template-do" type="text/x-handlebars-template">
-    <ul class="list-task">
+    <ul class="list-task" id="scroll-task">
       {{#do}}
       <li class="item-container">
         <p class="info"><a href="" target="do_{{_id}}">{{title}}</a></p>

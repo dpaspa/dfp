@@ -1,19 +1,23 @@
 {
-  "name": "ipoogi",
-  "version": "1.0.0",
-  "description": "an Integrated Process Of OnGoing Improvement desktop focal point",
-  "main": "main.js",
-  "license": "MIT",
-  "dependencies": {
-    "cron": "^1.0.9",
-    "electron-google-oauth": "^1.1.0",
-    "menubar": "^2.0.11",
-    "moment-timezone": "^0.3.1",
-    "node-notifier": "^4.2.1"
-  },
-  "devDependencies": {
-    "electron-packager": "~4.1.2",
-    "electron-prebuilt": "~0.27.1",
-    "jshint": "^2.7.0"
-  }
+    "name": "ipoogi",
+    "version": "1.0.0",
+    "description": "an Integrated Process Of OnGoing Improvement desktop focal point",
+    "main": "app.js",
+    "scripts": {
+        "start": "electron ."
+    },
+    "author": "David Paspa <david.paspa@ipoogi.com> (http://ipoogi.com)",
+    "license": "MIT",
+    "dependencies": {
+        "cron": "^1.0.9",
+        "electron-google-oauth": "^1.1.0",
+        "menubar": "^2.0.11",
+        "moment-timezone": "^0.3.1",
+        "node-notifier": "^4.2.1"
+    },
+    "devDependencies": {
+        "electron-packager": "~4.1.2",
+        "electron-prebuilt": "~0.27.1",
+        "jshint": "^2.7.0"
+    }
 }

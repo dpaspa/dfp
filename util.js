@@ -30,8 +30,36 @@
             return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
         }
 */
-function getURIParameter(name) {
+
+exports.getURIParameter = function (name) {
   return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null
 }
 
-exports.getURIParameter = getURIParameter;
+exports.getTimeStamp = function () {
+    if (Date.now) {
+        return Math.floor(Date.now() / 1000);
+    }
+    else {
+        return Math.floor (new Date().getTime() / 1000);
+    }
+}
+
+exports.getOSName = function () {
+    var OSName="Unknown OS";
+
+    if (navigator.appVersion.indexOf("Win") != -1) {
+        return OSName = "Windows";
+    }
+
+    else if (navigator.appVersion.indexOf("Mac") != -1) {
+        return OSName = "MacOS";
+    }
+
+    else if (navigator.appVersion.indexOf("X11") != -1) {
+        return OSName = "UNIX";
+    }
+
+    else if (navigator.appVersion.indexOf("Linux") != -1) {
+        return OSName = "Linux";
+    }
+}
