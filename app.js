@@ -244,7 +244,7 @@ app.on('ready', function() {
     });
 
     /**-----------------------------------------------------------------------*/
-    /** Create the master data list table window:                             */
+    /** Create the utility window:                                            */
     /**-----------------------------------------------------------------------*/
     var utilWindow = new BrowserWindow({
         title: 'Desktop Focal Point Utility',
@@ -429,8 +429,9 @@ app.on('ready', function() {
     /**-----------------------------------------------------------------------*/
     /** Process the search input box enter key event:                         */
     /**-----------------------------------------------------------------------*/
-    ipc.on('learning', function(arg) {
-        learningWindow.loadUrl('http://' + config.host + ':' + config.port + '/learning.html?search=' + arg);
+    ipc.on('learning', function(event, searchText) {
+        console.log(searchText);
+        learningWindow.loadUrl('http://' + config.host + ':' + config.port + '/learning.html?search=' + searchText);
         learningWindow.show();
     });
 
@@ -440,19 +441,6 @@ app.on('ready', function() {
     ipc.on('datatable', function(event, name) {
         tableWindow.loadUrl('http://' + config.host + ':' + config.port + '/datatable/' + name);
         tableWindow.show();
-
-/*        var s = JSON.stringify(data);
-        console.log(s);
-        fs.writeFile('./arrays.txt', s , function(err) {
-            if(err) {
-                return console.log(err);
-            }
-            else {
-                tableWindow.webContents.reload();
-                tableWindow.show();
-            }
-        });
-*/
     });
 
     /**-----------------------------------------------------------------------*/
@@ -480,7 +468,7 @@ app.on('ready', function() {
     /** Process an OS shell command execution event:                          */
     /**-----------------------------------------------------------------------*/
     ipc.on('prefs', function(event, arg) {
-        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/prefs.html);
+        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/prefs.html');
         utilWindow.show();
     });
 
@@ -495,7 +483,7 @@ app.on('ready', function() {
     /** Process an OS shell command execution event:                          */
     /**-----------------------------------------------------------------------*/
     ipc.on('user', function(event, arg) {
-        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/user.html);
+        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/user.html');
         utilWindow.show();
     });
 

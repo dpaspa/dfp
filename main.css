@@ -313,9 +313,11 @@ a:hover, a:active {
   background-color: transparent;
 }
 
+/*
 #quit {
     display: none;
 }
+*/
 
 /**---------------------------------------------------------------------------*/
 /** Rolled up display:                                                        */
@@ -521,6 +523,7 @@ a:hover, a:active {
 
 #messages li { 
   padding: 5px 10px; 
+  background-color: transparent;
 }
 
 /**---------------------------------------------------------------------------*/
@@ -714,36 +717,6 @@ a:hover, a:active {
 .plus span:before {
   transform: rotate(90deg);
   left: 8px;
-}
-
-/**---------------------------------------------------------------------------*/
-/** List content settings:                                                    */
-/**---------------------------------------------------------------------------*/
-/*
-#list-master-content {
-  position: absolute;
-  display: none;
-  overflow: auto;
-  width: 365px;
-  height: 45%;
-  bottom: 0;
-}
-
-#list-working-content {
-  position: absolute;
-  display: none;
-  overflow: auto;
-  width: 365px;
-  height: 45%;
-  top: 0;
-}
-
-#list-separator {
-  display: none;
-  position: absolute;
-  top: 46%;
-  height: 40px;
-  width: 100%;
 }
 
 #list-separator-title h2 {

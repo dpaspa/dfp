@@ -35,7 +35,7 @@ var dynamics = require('dynamics.js');
 var fs = require('fs');
 var xml2js = require('xml2js');
 var watch = require('watch');
-var io = require('socket.io');
+var socket = require('socket.io');
 
 /**---------------------------------------------------------------------------*/
 /** Declare global program variables:                                         */
@@ -451,9 +451,9 @@ document.getElementById('m-send').addEventListener('click', function(e) {
         /**-------------------------------------------------------------------*/
         /** Send the chat message to the server via a socket:                 */
         /**-------------------------------------------------------------------*/
-        var socket = io();
-        socket.emit('chat message', chatter);
-        socket.send(chatter);
+//        socket.emit('chat message', chatter);
+        socket.send('chat message', chatter);
+//        socket.send(chatter);
 
         /**-------------------------------------------------------------------*/
         /** Clear the input box and add the message to the list:              */
@@ -503,6 +503,7 @@ document.getElementById('search-key').addEventListener('keydown', function(e) {
 })
 
 document.getElementById('learn-more').addEventListener('click', function() {
+    console.log(searchText);
     ipc.send('learning', searchText);
 });
 
