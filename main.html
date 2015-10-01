@@ -9,13 +9,24 @@
   <!--link rel="alternate stylesheet" href="theme-light.css" title="light"-->
 </head>
 <body>
+  <div class="auth-container" id="user-auth">
+    <h2 class="form-signin-heading">You must sign in:</h2>
+    <input type="text" name="username" placeholder="Username" class="input-block-level">
+    <input type="password" name="password" placeholder="Password" class="input-block-level">
+    <p class="remember">Remember me</p>
+    <input type="checkbox" value="remember-me" class="remember">
+    <button type="submit" class="btn" id="btn-login-submit">Sign in</button>
+    <button type="button" class="btn" id="btn-login-cancel">Close</button>
+    <h2 class="form-signin-heading" id="login-status"></h2>
+  </div>
+
   <div class="roll-container" id="roll-wrap">
-      <div class="roll-do">
-          3
-      </div>
-      <div class="roll-chat">
-          1
-      </div>
+    <div class="roll-do">
+      3
+    </div>
+    <div class="roll-chat">
+      1
+    </div>
   </div>
   </div>
   <div class="app-container" id="site-wrap">

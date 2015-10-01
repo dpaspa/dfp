@@ -43,6 +43,7 @@ var socket = require('socket.io');
 var armedRoll = true;
 var armedUnroll = false;
 var lastdynamic;
+var loginAttemptCount = 0;
 var flipped = false;
 var searchText = '';
 
@@ -149,7 +150,6 @@ var rollFunction = function (e) {
     ipc.send('doRoll');
 };
 
-document.addEventListener('mouseleave', rollFunction, false);
 
 
 var unrollFunction = function (e) {
@@ -527,7 +527,7 @@ function flipPanel() {
 /**---------------------------------------------------------------------------*/
 document.getElementById('user-icon').addEventListener('click', function() {
     ipc.send('user');
-    setDisplayContext('do');
+//    setDisplayContext('do');
 });
 
 /*    var el = document.getElementById("user-label")
@@ -554,6 +554,66 @@ document.getElementById('user-icon').addEventListener('click', function() {
 document.getElementById('quit-icon').addEventListener('click', function() {
     ipc.send('quit');
 });
+
+/**---------------------------------------------------------------------------*/
+/** Can also quit instead of logging in:                                      */
+/**---------------------------------------------------------------------------*/
+document.getElementById('btn-login-cancel').addEventListener('click', function() {
+    ipc.send('quit');
+});
+
+/**---------------------------------------------------------------------------*/
+/** User login event:                                                         */
+/**---------------------------------------------------------------------------*/
+document.getElementById('btn-login-submit').addEventListener('click', function() {
+    /**-----------------------------------------------------------------------*/
+    /** Get the user's name and password as entered into the login form:      */
+    /**-----------------------------------------------------------------------*/
+    var name = document.querySelector('[name="username"]').value;
+    var password = document.querySelector('[name="password"]').value;
+
+    /**-----------------------------------------------------------------------*/
+    /** Check if the user is authorized to use the application:               */
+    /**-----------------------------------------------------------------------*/
+    authenticateUser(name, password, userIsAuthorised);
+});
+            
+/**---------------------------------------------------------------------------*/
+/** Function: setDisplayContext                                               */
+/** Sets the display of the application by showing or hiding things.          */
+/**                                                                           */
+/** @param {string} context  The application display context name.            */
+/**---------------------------------------------------------------------------*/
+function userIsAuthorised(isAllowed) {
+    if (isAllowed == 'true') {
+        /**-------------------------------------------------------------------*/
+        /** The login attmempt succeeded. Grant access:                       */
+        /**-------------------------------------------------------------------*/
+        console.log(isAllowed);
+        document.getElementById('login-status').innerHTML = 'Login successful';
+        ipc.send('userLoggedIn');
+        document.addEventListener('mouseleave', rollFunction, false);
+        document.getElementById('user-auth').style.display = 'none';
+        document.getElementById('site-wrap').style.display = 'block';
+        setDisplayContext('do');
+    }
+    else {
+        /**-------------------------------------------------------------------*/
+        /** Display the login attempt failed message:                         */
+        /**-------------------------------------------------------------------*/
+        loginAttemptCount += 1;
+        var s = 'Login unsuccessful after ' + loginAttemptCount + ' attempt';
+        if (loginAttemptCount > 1) {
+            s += 's';
+        }
+        if (loginAttemptCount > 2) {
+            s += '.\n Notifying the system administrator.';
+            ipc.send('userLoginUnsuccessful');
+            setDisplayContext('dynamic-chat');
+        }
+        document.getElementById('login-status').innerHTML = s;
+    }
+};
 
 /**---------------------------------------------------------------------------*/
 /** Function: setDisplayContext                                               */
@@ -879,24 +939,24 @@ function getListURI(type, num, name) {
     /**-----------------------------------------------------------------------*/
     switch (type) {
         /**-------------------------------------------------------------------*/
-        /** Opportunity For Improvement (OFI):                                */
+        /** Change Control (CC):                                              */
         /**-------------------------------------------------------------------*/
         case ('cc'):
-            uri = '/listActCC/' + num;
+            uri = '/list/listActCC/' + num;
             break;
 
         /**-------------------------------------------------------------------*/
         /** Phemobots pending checking prior to completion:                   */
         /**-------------------------------------------------------------------*/
         case ('check'):
-            uri = '/listCheck/' + num;
+            uri = '/list/listCheck/' + num;
             break;
 
         /**-------------------------------------------------------------------*/
         /** Do, or phembot task list:                                         */
         /**-------------------------------------------------------------------*/
         case ('do'):
-            uri = '/listDo/' + num;
+            uri = '/list/listDo/' + num;
             break;
 
         /**-------------------------------------------------------------------*/
@@ -917,14 +977,14 @@ function getListURI(type, num, name) {
         /** Opportunity For Improvement (OFI):                                */
         /**-------------------------------------------------------------------*/
         case ('ofi'):
-            uri = '/listActOFI/' + num;
+            uri = '/list/listActOFI/' + num;
             break;
 
         /**-------------------------------------------------------------------*/
         /** Quality Assurance Plan (list of Quality Controls):                */
         /**-------------------------------------------------------------------*/
         case ('plan'):
-            uri = '/listPlan/' + num;
+            uri = '/list/listPlan/' + num;
             break;
 
         /**-------------------------------------------------------------------*/
@@ -1027,7 +1087,7 @@ function getListDetailPage(name, num) {
     /**-----------------------------------------------------------------------*/
     /** Get the requested page list URI to request the data from the server:  */
     /**-----------------------------------------------------------------------*/
-    var uri = '/datatable/:' + name;
+    var uri = '/table/:' + name;
 
     /**-----------------------------------------------------------------------*/
     /** Set the http options to be used by the request:                       */
@@ -1112,6 +1172,47 @@ function postData(type, obj){
     });
 }
 
+/**---------------------------------------------------------------------------*/
+/** Function: authenticateUser                                                */
+/** Posts the user data to the server and gets the authorization status.      */
+/**                                                                           */
+/** @param {string} name     The user name entered in the login form.         */
+/** @param {string} password The password entered in the login form.          */
+/**---------------------------------------------------------------------------*/
+function authenticateUser(name, password, callback) {
+    /**-----------------------------------------------------------------------*/
+    /** Create the user object:                                               */
+    /**-----------------------------------------------------------------------*/
+    var user = {};
+    user['name'] = name;
+    user['password'] = password;
+    var body = JSON.stringify(user);
+
+    /**-----------------------------------------------------------------------*/
+    /** Set the API URI to post the data to:                                  */
+    /**-----------------------------------------------------------------------*/
+    var options = {
+        uri: 'http://' + config.host + ':' + config.port + '/page/user/login',
+        method: 'POST',
+        headers: {},
+        body: body
+    };
+
+    options.headers['Content-Type'] = 'application/json';
+    options.headers['Content-Length'] = Buffer.byteLength(body);
+
+    /**-----------------------------------------------------------------------*/
+    /** Send the request:                                                     */
+    /**-----------------------------------------------------------------------*/
+    request.post(options, function (error, response) {
+        if (typeof callback === 'function') {
+            callback(response.body);
+        }
+    });
+}
+
+    /**-----------------------------------------------------------------------*/
+    /** Set the API URI to post the data to:                                  */
     /**-----------------------------------------------------------------------*/
     /** Set the http options to be used by the request:                       */
     /**-----------------------------------------------------------------------*/

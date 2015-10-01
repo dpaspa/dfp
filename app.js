@@ -77,7 +77,7 @@ app.on('ready', function() {
     mainWindow = new BrowserWindow({
         title: 'Desktop Focal Point',
         width: 350,
-        height: size.height,
+        height: 350,
         transparent: false,
         "skip-taskbar": true,
         "always-on-top": true,
@@ -89,7 +89,7 @@ app.on('ready', function() {
     /** TODO: slide smoothly in and out on mouse over or hot key.             */
     /** TODO: Option to set left of screen.                                   */
     /**-----------------------------------------------------------------------*/
-    mainWindow.setPosition(size.width-350, 0);
+//    mainWindow.setPosition(size.width-350, size-height/2 - 175);
 //    mainWindow.setVisibleOnAllWorkspaces(true);
 
     /**-----------------------------------------------------------------------*/
@@ -102,7 +102,7 @@ app.on('ready', function() {
     /**-----------------------------------------------------------------------*/
     var mainOnTop = setInterval(function(){
         mainWindow.setAlwaysOnTop(true);
-    }, 1);
+    }, 10);
 
     /**-----------------------------------------------------------------------*/
     /** Set up the window close event emitter callback:                       */
@@ -158,7 +158,7 @@ app.on('ready', function() {
             x: size.width-currentWidth,
             y: 0,
             width: currentWidth,
-            height: size.height,
+            height: size.height
         });
         if (currentWidth <= 10 || currentWidth >= 350) {
             clearInterval(rollInterval);
@@ -342,7 +342,7 @@ app.on('ready', function() {
             x: size.width-currentWidth,
             y: 0,
             width: currentWidth,
-            height: size.height,
+            height: size.height
         });
         if (currentWidth == 15 || currentWidth == 350) {
             clearInterval(rollInterval);
@@ -376,7 +376,7 @@ app.on('ready', function() {
             mainWindow.webContents.send('calendarClose');
         }
         else {
-            calendarWindow.loadUrl('http://' + config.host + ':' + config.port + '/calendar');
+            calendarWindow.loadUrl('http://' + config.host + ':' + config.port + '/page/calendar');
             calendarWindow.show();
 /*
             request('http://127.0.0.1:8888/calendar', function (error, response, body) {
@@ -431,7 +431,7 @@ app.on('ready', function() {
     /**-----------------------------------------------------------------------*/
     ipc.on('learning', function(event, searchText) {
         console.log(searchText);
-        learningWindow.loadUrl('http://' + config.host + ':' + config.port + '/learning.html?search=' + searchText);
+        learningWindow.loadUrl('http://' + config.host + ':' + config.port + '/page/learning.html?search=' + searchText);
         learningWindow.show();
     });
 
@@ -439,7 +439,7 @@ app.on('ready', function() {
     /** Process the master data list item click event:                        */
     /**-----------------------------------------------------------------------*/
     ipc.on('datatable', function(event, name) {
-        tableWindow.loadUrl('http://' + config.host + ':' + config.port + '/datatable/' + name);
+        tableWindow.loadUrl('http://' + config.host + ':' + config.port + '/table/' + name);
         tableWindow.show();
     });
 
@@ -468,7 +468,7 @@ app.on('ready', function() {
     /** Process an OS shell command execution event:                          */
     /**-----------------------------------------------------------------------*/
     ipc.on('prefs', function(event, arg) {
-        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/prefs.html');
+        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/page/preferences.html');
         utilWindow.show();
     });
 
@@ -480,10 +480,54 @@ app.on('ready', function() {
     });
 
     /**-----------------------------------------------------------------------*/
-    /** Process an OS shell command execution event:                          */
+    /** Display the full form after user logged in successfully:              */
     /**-----------------------------------------------------------------------*/
-    ipc.on('user', function(event, arg) {
-        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/user.html');
+    ipc.on('userLoggedIn', function() {
+        mainWindow.setBounds({
+            x: size.width-350,
+            y: 0,
+            width: 350,
+            height: size.height
+        });
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Display the chat box to the administrator if the user could not login:*/
+    /**-----------------------------------------------------------------------*/
+    ipc.on('userLoginUnsuccessful', function() {
+        mainWindow.setBounds({
+            x: size.width-350,
+            y: 0,
+            width: 350,
+            height: 700
+        });
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Display the user profile form:                                        */
+    /**-----------------------------------------------------------------------*/
+    ipc.on('userProfile', function(event, arg) {
+        utilWindow.setBounds({
+            x: size.width-750,
+            y: size.height-540,
+            width: 400,
+            height: 340
+        });
+        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/page/user/login');
+        utilWindow.show();
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Display the user registration form:                                   */
+    /**-----------------------------------------------------------------------*/
+    ipc.on('userRegister', function(event, arg) {
+        utilWindow.setBounds({
+            x: size.width-750,
+            y: size.height-540,
+            width: 400,
+            height: 340
+        });
+        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/page/user/register');
         utilWindow.show();
     });
 
@@ -491,7 +535,18 @@ app.on('ready', function() {
     /** Menu bar click event:                                                 */
     /**-----------------------------------------------------------------------*/
     mb.on('click', function () {
-        mainWindow.setPosition(size.width-350, 0);
+        if (mainWindow.isVisible()) {
+            mainWindow.hide();
+        }
+        else {
+            mainWindow.setBounds({
+                x: size.width-350,
+                y: 0,
+                width: 350,
+                height: size.height
+            });
+            mainWindow.show();
+        }
     });
 });
 
