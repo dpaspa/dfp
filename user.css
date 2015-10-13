@@ -1,0 +1,116 @@
+/**---------------------------------------------------------------------------*/
+/**                       Copyright © 2015 ipoogi.com                         */
+/**                                                                           */
+/** This is the main style sheet for the Electron application for the dfp     */
+/** (desktop focal point) application. The dfp is the desktop client          */
+/** application for integrating the user's workflows into the QMS back end.   */
+/*----------------------------------------------------------------------------*/
+/** Revision history:                                                         */
+/** Ver By                Date        CC   Revision Note                      */
+/** 2   David Paspa       01-Oct-2015 NA   Split out user form.               */
+/** 1   David Paspa       30-Aug-2015 NA   Initial design.                    */
+/**---------------------------------------------------------------------------*/
+
+/**---------------------------------------------------------------------------*/
+/** Main application window:                                                  */
+/**---------------------------------------------------------------------------*/
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 350px;
+  font: menu;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+  overflow: hidden;
+}
+
+h1 {
+  margin: 0;
+  padding: 5px;
+  font-size: 1.4em;
+  vertical-align: middle;
+}
+
+h1 img{
+  vertical-align: middle;
+}
+
+h2 {
+  font-size: 1.1em;
+  font-weight: normal;
+  padding: 5px 5px;
+  margin: 0;
+}
+
+p {
+  margin: .1em;
+}
+
+a:link, a:visited {
+  text-decoration: none;
+}
+
+a:hover, a:active {
+  text-decoration: underline;
+}
+
+/**---------------------------------------------------------------------------*/
+/** User authorisation:                                                       */
+/**---------------------------------------------------------------------------*/
+.auth-container {
+  position: absolute;
+  top: 50px;
+  left: 25px;
+  width: 300px;
+}
+
+.form-signin-heading {
+  margin: 0 0 25px 0;
+}
+
+.input-block-level {
+  display: block;
+  width: 300px;
+  min-height: 30px;
+  margin-bottom: 5px;
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+#btn-login-submit {
+  cursor: pointer;
+  position: absolute;
+  top: 170px;
+  right: 0;
+  height: 25px;
+  *padding-top: 3px;
+  *padding-bottom: 3px;
+  margin-right: 0px;
+  background-color: #6a8083;
+}
+
+#btn-login-cancel {
+  cursor: pointer;
+  position: absolute;
+  top: 170px;
+  left: 0;
+  height: 25px;
+  *padding-top: 3px;
+  *padding-bottom: 3px;
+  margin-right: 0px;
+  background-color: #6a8083;
+}
+
+.remember {
+  display: inline;
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+#login-status {
+  position: absolute;
+  top: 230px;
+}

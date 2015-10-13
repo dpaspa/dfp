@@ -40,29 +40,13 @@ var socket = require('socket.io');
 /**---------------------------------------------------------------------------*/
 /** Declare global program variables:                                         */
 /**---------------------------------------------------------------------------*/
+var flipped = false;
 var armedRoll = true;
 var armedUnroll = false;
 var lastdynamic;
 var loginAttemptCount = 0;
 var flipped = false;
 var searchText = '';
-
-/**---------------------------------------------------------------------------*/
-/** Get the OS type and set the paths accordingly:                            */
-/**---------------------------------------------------------------------------*/
-var OSName = util.getOSName();
-if (OSName === "Windows") {
-    var pathLocal = config.pathLocalWin;
-    var pathRemote = config.pathRemoteWin;
-}
-else if (OSName="MacOS") {
-    var pathLocal = config.pathLocalMacOS;
-    var pathRemote = config.pathRemoteMacOS;
-}
-else {
-    var pathLocal = config.pathLocalLinux;
-    var pathRemote = config.pathRemoteLinux;
-}
 
 /******************************************************************************/
 /**                                                                           */
@@ -113,6 +97,12 @@ function renderTemplate(type, data) {
 /******************************************************************************/
 
 /**---------------------------------------------------------------------------*/
+/** Main window refresh complete:                                             */
+/**---------------------------------------------------------------------------*/
+ipc.on('render-finished', function() {
+});
+
+/**---------------------------------------------------------------------------*/
 /** Calendar window has been closed:                                          */
 /**---------------------------------------------------------------------------*/
 ipc.on('calendarClose', function() {
@@ -132,7 +122,7 @@ ipc.on('dashboardClose', function() {
 ipc.on('rolled', function() {
     document.getElementById("roll-wrap").style.display = 'block';
     document.getElementById("roll-wrap").classList.add('activeRoll');
-    document.getElementById("roll-wrap").addEventListener('mouseover', unrollFunction, false);
+//    document.getElementById("roll-wrap").addEventListener('mouseover', unrollFunction, false);
 });
 
 /**---------------------------------------------------------------------------*/
@@ -141,24 +131,24 @@ ipc.on('rolled', function() {
 ipc.on('unrolled', function() {
     document.getElementById("roll-wrap").style.display = 'none';
     document.getElementById("roll-wrap").classList.remove('activeRoll');
-    document.addEventListener('mouseleave', rollFunction, false);
+//    document.addEventListener('mouseleave', rollFunction, false);
 });
 
 
 var rollFunction = function (e) {
-    document.removeEventListener('mouseleave', rollFunction, false);
+//    document.removeEventListener('mouseleave', rollFunction, false);
     ipc.send('doRoll');
 };
 
 
 
 var unrollFunction = function (e) {
-    document.getElementById("roll-wrap").removeEventListener('mouseover', unrollFunction, false);
+//    document.getElementById("roll-wrap").removeEventListener('mouseover', unrollFunction, false);
     ipc.send('doUnroll');
 
 };
 
-document.getElementById("roll-wrap").addEventListener('mouseover', unrollFunction, false);
+//document.getElementById("roll-wrap").addEventListener('mouseover', unrollFunction, false);
 
 /**---------------------------------------------------------------------------*/
 /** Body event. Used to check for a phembot or list-catlog selection:         */
@@ -480,12 +470,7 @@ document.getElementById('prefs-icon').addEventListener('click', function() {
     /**-----------------------------------------------------------------------*/
     /** Re-render the handlebars templates with the new object data:          */
     /**-----------------------------------------------------------------------*/
-/*    var data = JSON.stringify(config);
-    console.log(data); 
-    renderTemplate('prefs', config);
-    setDisplayContext('prefs'); */
     ipc.send('prefs');
-    setDisplayContext('do');
 });
 
 /**---------------------------------------------------------------------------*/
@@ -527,7 +512,6 @@ function flipPanel() {
 /**---------------------------------------------------------------------------*/
 document.getElementById('user-icon').addEventListener('click', function() {
     ipc.send('user');
-//    setDisplayContext('do');
 });
 
 /*    var el = document.getElementById("user-label")
@@ -545,7 +529,6 @@ document.getElementById('user-icon').addEventListener('click', function() {
         }
     )
 */
-//    ipc.send('event', 'user');
 
 /**---------------------------------------------------------------------------*/
 /** Application quit icon click event to close the application by sending the */
@@ -554,66 +537,6 @@ document.getElementById('user-icon').addEventListener('click', function() {
 document.getElementById('quit-icon').addEventListener('click', function() {
     ipc.send('quit');
 });
-
-/**---------------------------------------------------------------------------*/
-/** Can also quit instead of logging in:                                      */
-/**---------------------------------------------------------------------------*/
-document.getElementById('btn-login-cancel').addEventListener('click', function() {
-    ipc.send('quit');
-});
-
-/**---------------------------------------------------------------------------*/
-/** User login event:                                                         */
-/**---------------------------------------------------------------------------*/
-document.getElementById('btn-login-submit').addEventListener('click', function() {
-    /**-----------------------------------------------------------------------*/
-    /** Get the user's name and password as entered into the login form:      */
-    /**-----------------------------------------------------------------------*/
-    var name = document.querySelector('[name="username"]').value;
-    var password = document.querySelector('[name="password"]').value;
-
-    /**-----------------------------------------------------------------------*/
-    /** Check if the user is authorized to use the application:               */
-    /**-----------------------------------------------------------------------*/
-    authenticateUser(name, password, userIsAuthorised);
-});
-            
-/**---------------------------------------------------------------------------*/
-/** Function: setDisplayContext                                               */
-/** Sets the display of the application by showing or hiding things.          */
-/**                                                                           */
-/** @param {string} context  The application display context name.            */
-/**---------------------------------------------------------------------------*/
-function userIsAuthorised(isAllowed) {
-    if (isAllowed == 'true') {
-        /**-------------------------------------------------------------------*/
-        /** The login attmempt succeeded. Grant access:                       */
-        /**-------------------------------------------------------------------*/
-        console.log(isAllowed);
-        document.getElementById('login-status').innerHTML = 'Login successful';
-        ipc.send('userLoggedIn');
-        document.addEventListener('mouseleave', rollFunction, false);
-        document.getElementById('user-auth').style.display = 'none';
-        document.getElementById('site-wrap').style.display = 'block';
-        setDisplayContext('do');
-    }
-    else {
-        /**-------------------------------------------------------------------*/
-        /** Display the login attempt failed message:                         */
-        /**-------------------------------------------------------------------*/
-        loginAttemptCount += 1;
-        var s = 'Login unsuccessful after ' + loginAttemptCount + ' attempt';
-        if (loginAttemptCount > 1) {
-            s += 's';
-        }
-        if (loginAttemptCount > 2) {
-            s += '.\n Notifying the system administrator.';
-            ipc.send('userLoginUnsuccessful');
-            setDisplayContext('dynamic-chat');
-        }
-        document.getElementById('login-status').innerHTML = s;
-    }
-};
 
 /**---------------------------------------------------------------------------*/
 /** Function: setDisplayContext                                               */
@@ -819,7 +742,7 @@ schedule.scheduleJob(rule, function(){
 /**                                                                           */
 /** Setup the fs.watch object to monitor the local files directory.           */
 /**---------------------------------------------------------------------------*/
-watch.watchTree(pathLocal + '/' + config.pathLocalReceptorsIn, function (f, curr, prev) {
+watch.watchTree(config.pathLocal + '/' + config.pathLocalReceptorsIn, function (f, curr, prev) {
     /**-----------------------------------------------------------------------*/
     /** Assume there will be nothing to do:                                   */
     /**-----------------------------------------------------------------------*/
@@ -1087,7 +1010,7 @@ function getListDetailPage(name, num) {
     /**-----------------------------------------------------------------------*/
     /** Get the requested page list URI to request the data from the server:  */
     /**-----------------------------------------------------------------------*/
-    var uri = '/table/:' + name;
+    var uri = '/table/' + name;
 
     /**-----------------------------------------------------------------------*/
     /** Set the http options to be used by the request:                       */
@@ -1172,59 +1095,6 @@ function postData(type, obj){
     });
 }
 
-/**---------------------------------------------------------------------------*/
-/** Function: authenticateUser                                                */
-/** Posts the user data to the server and gets the authorization status.      */
-/**                                                                           */
-/** @param {string} name     The user name entered in the login form.         */
-/** @param {string} password The password entered in the login form.          */
-/**---------------------------------------------------------------------------*/
-function authenticateUser(name, password, callback) {
-    /**-----------------------------------------------------------------------*/
-    /** Create the user object:                                               */
-    /**-----------------------------------------------------------------------*/
-    var user = {};
-    user['name'] = name;
-    user['password'] = password;
-    var body = JSON.stringify(user);
-
-    /**-----------------------------------------------------------------------*/
-    /** Set the API URI to post the data to:                                  */
-    /**-----------------------------------------------------------------------*/
-    var options = {
-        uri: 'http://' + config.host + ':' + config.port + '/page/user/login',
-        method: 'POST',
-        headers: {},
-        body: body
-    };
-
-    options.headers['Content-Type'] = 'application/json';
-    options.headers['Content-Length'] = Buffer.byteLength(body);
-
-    /**-----------------------------------------------------------------------*/
-    /** Send the request:                                                     */
-    /**-----------------------------------------------------------------------*/
-    request.post(options, function (error, response) {
-        if (typeof callback === 'function') {
-            callback(response.body);
-        }
-    });
-}
-
-    /**-----------------------------------------------------------------------*/
-    /** Set the API URI to post the data to:                                  */
-    /**-----------------------------------------------------------------------*/
-    /** Set the http options to be used by the request:                       */
-    /**-----------------------------------------------------------------------*/
-/*
-    var options = {
-        uri: config.host + ':' + config.port + uriServer,
-        method: 'POST',
-        headers: {},
-        path: uri
-    };
-
-*/
     /**-----------------------------------------------------------------------*/
     /** Define the callback function used to deal with the response:          */
     /**-----------------------------------------------------------------------*/

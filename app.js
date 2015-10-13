@@ -74,8 +74,8 @@ app.on('ready', function() {
     /**-----------------------------------------------------------------------*/
     /** Create the main browser window for the application:                   */
     /**-----------------------------------------------------------------------*/
-    mainWindow = new BrowserWindow({
-        title: 'Desktop Focal Point',
+    var userWindow = new BrowserWindow({
+        title: 'Desktop Focal Point User Login',
         width: 350,
         height: 350,
         transparent: false,
@@ -86,10 +86,33 @@ app.on('ready', function() {
 
     /**-----------------------------------------------------------------------*/
     /** Set the position to the right of the screen:                          */
-    /** TODO: slide smoothly in and out on mouse over or hot key.             */
+    /**-----------------------------------------------------------------------*/
+    userWindow.setPosition(size.width-350, size.height/2 - 175);
+
+    /**-----------------------------------------------------------------------*/
+    /** Load the user html page of the app:                                   */
+    /**-----------------------------------------------------------------------*/
+    userWindow.loadUrl('file://' + __dirname + '/user.html');
+
+    /**-----------------------------------------------------------------------*/
+    /** Create the main browser window for the application:                   */
+    /**-----------------------------------------------------------------------*/
+    mainWindow = new BrowserWindow({
+        title: 'Desktop Focal Point',
+        width: 350,
+        height: size.height,
+        transparent: false,
+        "skip-taskbar": true,
+        "always-on-top": true,
+        frame: false,
+        show: false
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Set the position to the right of the screen:                          */
     /** TODO: Option to set left of screen.                                   */
     /**-----------------------------------------------------------------------*/
-//    mainWindow.setPosition(size.width-350, size-height/2 - 175);
+    mainWindow.setPosition(size.width-350, 0);
 //    mainWindow.setVisibleOnAllWorkspaces(true);
 
     /**-----------------------------------------------------------------------*/
@@ -120,6 +143,13 @@ app.on('ready', function() {
         /** the corresponding element.                                        */
         /**-------------------------------------------------------------------*/
         mainWindow = null;
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Set up the user window close event emitter callback:                  */
+    /**-----------------------------------------------------------------------*/
+    userWindow.on('closed', function() {
+        userWindow = null;
     });
 
     /**-----------------------------------------------------------------------*/
@@ -231,19 +261,6 @@ app.on('ready', function() {
     });
 
     /**-----------------------------------------------------------------------*/
-    /** Create the master data list table window:                             */
-    /**-----------------------------------------------------------------------*/
-    var tableWindow = new BrowserWindow({
-        title: 'Desktop Focal Point Master Data List',
-        width: finalWidth,
-        height: finalHeight,
-        "skip-taskbar": true,
-        frame: false,
-        transparent: false,
-        show: false
-    });
-
-    /**-----------------------------------------------------------------------*/
     /** Create the utility window:                                            */
     /**-----------------------------------------------------------------------*/
     var utilWindow = new BrowserWindow({
@@ -262,7 +279,6 @@ app.on('ready', function() {
     calendarWindow.setPosition(finalX, finalY);
     dashboardWindow.setPosition(finalX, finalY);
     learningWindow.setPosition(finalX, finalY);
-    tableWindow.setPosition(finalX, finalY);
     utilWindow.setPosition(finalX, finalY);
 
     /**-----------------------------------------------------------------------*/
@@ -270,10 +286,8 @@ app.on('ready', function() {
     /**-----------------------------------------------------------------------*/
 //    calendarWindow.loadUrl('file://' + __dirname + '/calendar.html');
     dashboardWindow.loadUrl('http://127.0.0.1:3030/sample');
-//    tableWindow.loadUrl('file://' + __dirname + '/table.html');
 //    learningWindow.loadUrl('file://' + __dirname + '/learning.html');
 //    dashboardWindow.loadUrl('file://' + __dirname + '/dashboard.html');
-//    tableWindow.loadUrl('file://' + __dirname + '/table.html?type=' + type + field + id);
 //    learningWindow.loadUrl('file://' + __dirname + '/learn.html?chunk=' + chunk);
 
     /**************************************************************************/
@@ -344,9 +358,9 @@ app.on('ready', function() {
             width: currentWidth,
             height: size.height
         });
-        if (currentWidth == 15 || currentWidth == 350) {
+        if (currentWidth == 5 || currentWidth == 350) {
             clearInterval(rollInterval);
-            if (currentWidth == 15) {
+            if (currentWidth == 5) {
                 mainWindow.webContents.send('rolled');
             }
             else {
@@ -363,7 +377,8 @@ app.on('ready', function() {
         calendarWindow.close();
         dashboardWindow.close();
         learningWindow.close();
-        tableWindow.close();
+        userWindow.close();
+//        tableWindow.close();
         app.quit();
     });
 
@@ -439,6 +454,23 @@ app.on('ready', function() {
     /** Process the master data list item click event:                        */
     /**-----------------------------------------------------------------------*/
     ipc.on('datatable', function(event, name) {
+        /**-------------------------------------------------------------------*/
+        /** Create the master data list table window:                         */
+        /**-------------------------------------------------------------------*/
+        var tableWindow = new BrowserWindow({
+            title: 'Desktop Focal Point Master Data List',
+            width: finalWidth,
+            height: finalHeight,
+            "skip-taskbar": true,
+            frame: false,
+            transparent: false,
+            show: false
+        });
+
+        /**-------------------------------------------------------------------*/
+        /** Display the data table window:                                    */
+        /**-------------------------------------------------------------------*/
+        tableWindow.setPosition(finalX, finalY);
         tableWindow.loadUrl('http://' + config.host + ':' + config.port + '/table/' + name);
         tableWindow.show();
     });
@@ -446,9 +478,9 @@ app.on('ready', function() {
     /**-----------------------------------------------------------------------*/
     /** Process the master data table window close button click event:        */
     /**-----------------------------------------------------------------------*/
-    ipc.on('datatableClose', function(arg) {
-        tableWindow.hide();
-    });
+//    ipc.on('datatableClose', function(arg) {
+//        tableWindow.hide();
+//    });
 
     /**-----------------------------------------------------------------------*/
     /** Process the learning window close button click event:                 */
@@ -483,24 +515,17 @@ app.on('ready', function() {
     /** Display the full form after user logged in successfully:              */
     /**-----------------------------------------------------------------------*/
     ipc.on('userLoggedIn', function() {
-        mainWindow.setBounds({
-            x: size.width-350,
-            y: 0,
-            width: 350,
-            height: size.height
-        });
+        /**-----------------------------------------------------------------------*/
+        /** Hide the login window and show the main window:                       */
+        /**-----------------------------------------------------------------------*/
+        userWindow.hide();
+        mainWindow.show();
     });
 
     /**-----------------------------------------------------------------------*/
     /** Display the chat box to the administrator if the user could not login:*/
     /**-----------------------------------------------------------------------*/
     ipc.on('userLoginUnsuccessful', function() {
-        mainWindow.setBounds({
-            x: size.width-350,
-            y: 0,
-            width: 350,
-            height: 700
-        });
     });
 
     /**-----------------------------------------------------------------------*/
@@ -535,10 +560,13 @@ app.on('ready', function() {
     /** Menu bar click event:                                                 */
     /**-----------------------------------------------------------------------*/
     mb.on('click', function () {
+console.log('mb clicked');
         if (mainWindow.isVisible()) {
+console.log('main window visible');
             mainWindow.hide();
         }
         else {
+console.log('main window invisible');
             mainWindow.setBounds({
                 x: size.width-350,
                 y: 0,
@@ -548,6 +576,13 @@ app.on('ready', function() {
             mainWindow.show();
         }
     });
+
+    /**-----------------------------------------------------------------------*/
+    /** Main window was refreshed. Display the correct context:               */
+    /**-----------------------------------------------------------------------*/
+//    mainWindow.webContents.on('did-finish-load', function() {
+//        mainWindow.webContents.send('render-finished');
+//    });
 });
 
 /******************************************************************************/
@@ -567,5 +602,17 @@ var mb = menubar({
     icon: __dirname + '/images/IconTemplate.png'
 });
 
-mb.on('ready', function ready () {
+/*
+mb.on('click', function () {
+    console.log('mb clicked');
 });
+*/
+
+
+/*
+mb.on('ready', function ready () {
+    mb.on('click', function () {
+        console.log('mb clicked');
+    });
+});
+*/

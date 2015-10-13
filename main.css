@@ -55,9 +55,11 @@ a:hover, a:active {
   text-decoration: underline;
 }
 
+/*
 #site-wrap {
   display: none;
 }
+*/
 
 .app-container {
   transition: right 0.4s;
@@ -82,8 +84,16 @@ a:hover, a:active {
   background-color: #ff0000;
 }
 
+#do-content {
+  position: absolute;
+  top: 28px; /* Header Height */
+  bottom: 0; /* Footer Height */
+  left: 0;
+  width: 365px;
+  overflow-y: scroll;
+}
+
 #plan-content,
-#do-content,
 #check-content {
   display: none;
   position: absolute;
@@ -733,7 +743,6 @@ a:hover, a:active {
 #list-separator p {
   margin: 0;
 }
-*/
 
 /**---------------------------------------------------------------------------*/
 /** Plan and List list content settings are the same:                         */
@@ -808,63 +817,4 @@ a:hover, a:active {
   width: 97%;
   height: 540px;
   border: 3px solid #666666;
-}
-
-/**---------------------------------------------------------------------------*/
-/** User authorisation:                                                       */
-/**---------------------------------------------------------------------------*/
-.auth-container {
-  position: absolute;
-  top: 50px;
-  left: 25px;
-  width: 300px;
-}
-
-.form-signin-heading {
-  margin: 0 0 25px 0;
-}
-
-.input-block-level {
-  display: block;
-  width: 300px;
-  min-height: 30px;
-  margin-bottom: 5px;
-  -webkit-box-sizing: border-box;
-     -moz-box-sizing: border-box;
-          box-sizing: border-box;
-}
-
-#btn-login-submit {
-  cursor: pointer;
-  position: absolute;
-  top: 170px;
-  right: 0;
-  height: 25px;
-  *padding-top: 3px;
-  *padding-bottom: 3px;
-  margin-right: 0px;
-  background-color: #6a8083;
-}
-
-#btn-login-cancel {
-  cursor: pointer;
-  position: absolute;
-  top: 170px;
-  left: 0;
-  height: 25px;
-  *padding-top: 3px;
-  *padding-bottom: 3px;
-  margin-right: 0px;
-  background-color: #6a8083;
-}
-
-.remember {
-  display: inline;
-  margin-top: 5px;
-  margin-bottom: 20px;
-}
-
-#login-status {
-  position: absolute;
-  top: 230px;
 }

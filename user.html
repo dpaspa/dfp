@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ipoogi desktop focal point user window</title>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="user.css">
+  <link rel="stylesheet" href="theme-active.css">
+</head>
+<body>
+  <div class="auth-container" id="user-auth">
+    <h2 class="form-signin-heading">You must sign in:</h2>
+    <input type="text" name="username" placeholder="Username" class="input-block-level">
+    <input type="password" name="password" placeholder="Password" class="input-block-level">
+    <p class="remember">Remember me</p>
+    <input type="checkbox" value="remember-me" class="remember">
+    <button type="submit" class="btn" id="btn-login-submit">Sign in</button>
+    <button type="button" class="btn" id="btn-login-cancel">Close</button>
+    <h2 class="form-signin-heading" id="login-status"></h2>
+  </div>
+  <script>require("./user.js")</script>
+</body>
+</html>

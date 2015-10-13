@@ -27,14 +27,20 @@ var OSName = util.getOSName();
 if (OSName === "Windows") {
     var pathLocal = config.pathLocalWin;
     var pathRemote = config.pathRemoteWin;
+    var pathWrite = config.pathWriteWin;
+    var pathSheet = config.pathSheetWin;
 }
 else if (OSName="MacOS") {
     var pathLocal = config.pathLocalMacOS;
     var pathRemote = config.pathRemoteMacOS;
+    var pathWrite = config.pathWriteMacOS;
+    var pathSheet = config.pathSheetMacOS;
 }
 else {
     var pathLocal = config.pathLocalLinux;
     var pathRemote = config.pathRemoteLinux;
+    var pathWrite = config.pathWriteLinux;
+    var pathSheet = config.pathSheetLinux;
 }
 
 /**---------------------------------------------------------------------------*/
@@ -76,11 +82,11 @@ function processDrop(e) {
                 document.getElementById('dyno').style.backgroundImage = 
                                                     'url(./images/colour.gif)';
                 var phembotFile = createPhembot(files[i].path, 'css');
-                shell.exec(
-                    '"' + config.pathOSExec + '/' + config.pathWrite + '"' + 
+                var s = '"' + pathWrite + '"' + 
                     '\ /q\ /x\ /l"' + pathRemote + '/' + 
-                    config.pathRemoteEffectors + '/' + config.fileRemoteEffector + '"' + 
-                    '\ ' + '"' + phembotFile + '"', {async:true}, function(code, output) {
+                    config.pathRemoteEffectors + '/' + config.fileRemoteEffector + 
+                    '"' + '\ ' + '"' + phembotFile + '"';
+                shell.exec(s, {async:true}, function(code, output) {
                     ipc.send('refresh');
                 });
                 break;
@@ -95,12 +101,13 @@ function processDrop(e) {
                 /**-----------------------------------------------------------*/
                 document.getElementById('dyno').style.backgroundImage = 
                                                     'url(./images/factory.gif)';
-                var success = shell.exec(
-                    '"' + config.pathOSExec + '/' + config.pathWrite + '"' + 
-                    '\ /q\ /x\ /l"' + config.pathRemote + '/' + 
-                    config.pathEffectors + '/' + config.fileEffector + '"' + 
-                    '\ ' + '"' + config.pathRemote + '/' + config.pathPhembots +
-                    '/anyxl.json"', {async:true}).output;
+                var phembotFile = pathRemote + '/' + config.pathRemotePhembots + '/anyxl.json';
+                var s = '"' + pathWrite + '"' + 
+                    '\ /q\ /x\ /l"' + pathRemote + '/' + 
+                    config.pathRemoteEffectors + '/' + config.fileRemoteEffector + 
+                    '"' + '\ ' + '"' + phembotFile + '"';
+                shell.exec(s, {async:true}, function(code, output) {
+                });
                 break;
 
             /**---------------------------------------------------------------*/
@@ -120,8 +127,7 @@ function processDrop(e) {
                         /** process the phembot file:                         */
                         /**---------------------------------------------------*/
                         alert(JSON.stringify(result));
-                        var shellCommand = config.pathOSExec + '/' +
-                                           config.pathWrite + '\ /q\ /x\ /l' +
+                        var shellCommand = pathWrite + '\ /q\ /x\ /l' +
                                            config.pathEffector + '/' + 
                                            config.fileEffector + '\ ' +
                                            files[i].path;
@@ -171,10 +177,15 @@ function createPhembot (receptor, secondMessenger) {
     'title': 'Calibration of KA-100 Weighing Balance',
     'icon': 'cal.png',
     'receptor': {
-        'ref': 'D67',
-        'type': 'Instruction',
-        'version': 1,
-        'title': 'Product X',
+        "idCollection": "",
+        "idDocument": "",
+        "idPhembot": "",
+        "ref": "D67",
+        "type": "Instruction",
+        "version": 1,
+        "title": "Product X",
+        "save": false,
+        "close": true,
         'document': receptor
     },
     'messenger': {
@@ -182,14 +193,17 @@ function createPhembot (receptor, secondMessenger) {
             'css'
         ],
         'css': {
-            'effector': 'Word',
+            'effector': 'write',
             'userConfirm': true,
             'userMessage': 'Overwrite application style sheet?',
             'save': false,
             'close': true,
-            'msgData': {
-                'outputPath': '__dirname',
-                'outputFile': '/theme-active.css'
+            "request": {
+                "outputPath": "X:/Business/ipoogi/development/electron/theme-active.css"
+            },
+            "response": {
+            },
+            "error": {
             }
         }
     },
@@ -199,17 +213,16 @@ function createPhembot (receptor, secondMessenger) {
         'uriAPI': 'http://localhost:8888/api/',
         'website': 'http://ipoogi.com',
         'feedback': 'http://ipoogi.com',
-        'pathOSExec': 'c:/',
-        'pathWrite': 'Program Files/Microsoft Office/Office14/winword',
-        'pathSheet': 'Program Files/Microsoft Office/Office14/excel',
-        'pathRemote': 'q:/',
+        "pathWrite": "c:/Program Files/Microsoft Office/Office14/winword",
+        "pathSheet": "c:/Program Files/Microsoft Office/Office14/excel",
+        "pathRemote": "X:/business/ipoogi/qms",
         'pathRemoteLogo': 'logo.png',
         'pathRemoteEffector': 'effectors',
         'pathRemoteMessengers': 'effectors',
         'pathRemotePhembots': 'phembots',
         'pathRemoteReceptors': 'receptors',
         'fileRemoteEffector': 'pb.dotm',
-        'pathLocal': 'x:/Business/ipoogi',
+        'pathLocal': 'x:/Business/ipoogi/files',
         'pathLocalReceptorsIn': 'receptors/in',
         'pathLocalReceptorsOut': 'receptors/out',
         'pathLocalPhembotsIn': 'effectors/in',
