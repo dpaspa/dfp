@@ -21,29 +21,6 @@ var config = require('./config');
 var util = require('./util');
 
 /**---------------------------------------------------------------------------*/
-/** Get the OS type and set the paths accordingly:                            */
-/**---------------------------------------------------------------------------*/
-var OSName = util.getOSName();
-if (OSName === "Windows") {
-    var pathLocal = config.pathLocalWin;
-    var pathRemote = config.pathRemoteWin;
-    var pathWrite = config.pathWriteWin;
-    var pathSheet = config.pathSheetWin;
-}
-else if (OSName="MacOS") {
-    var pathLocal = config.pathLocalMacOS;
-    var pathRemote = config.pathRemoteMacOS;
-    var pathWrite = config.pathWriteMacOS;
-    var pathSheet = config.pathSheetMacOS;
-}
-else {
-    var pathLocal = config.pathLocalLinux;
-    var pathRemote = config.pathRemoteLinux;
-    var pathWrite = config.pathWriteLinux;
-    var pathSheet = config.pathSheetLinux;
-}
-
-/**---------------------------------------------------------------------------*/
 /** Function: processDrop                                                     */
 /** Processes the object dropped on the dyno.                                 */
 /**                                                                           */
@@ -82,8 +59,8 @@ function processDrop(e) {
                 document.getElementById('dyno').style.backgroundImage = 
                                                     'url(./images/colour.gif)';
                 var phembotFile = createPhembot(files[i].path, 'css');
-                var s = '"' + pathWrite + '"' + 
-                    '\ /q\ /x\ /l"' + pathRemote + '/' + 
+                var s = '"' + config.pathWrite + '"' + 
+                    '\ /q\ /x\ /l"' + config.pathRemote + '/' + 
                     config.pathRemoteEffectors + '/' + config.fileRemoteEffector + 
                     '"' + '\ ' + '"' + phembotFile + '"';
                 shell.exec(s, {async:true}, function(code, output) {
@@ -101,9 +78,9 @@ function processDrop(e) {
                 /**-----------------------------------------------------------*/
                 document.getElementById('dyno').style.backgroundImage = 
                                                     'url(./images/factory.gif)';
-                var phembotFile = pathRemote + '/' + config.pathRemotePhembots + '/anyxl.json';
-                var s = '"' + pathWrite + '"' + 
-                    '\ /q\ /x\ /l"' + pathRemote + '/' + 
+                var phembotFile = config.pathRemote + '/' + config.pathRemotePhembots + '/anyxl.json';
+                var s = '"' + config.pathWrite + '"' + 
+                    '\ /q\ /x\ /l"' + config.pathRemote + '/' + 
                     config.pathRemoteEffectors + '/' + config.fileRemoteEffector + 
                     '"' + '\ ' + '"' + phembotFile + '"';
                 shell.exec(s, {async:true}, function(code, output) {
@@ -127,7 +104,7 @@ function processDrop(e) {
                         /** process the phembot file:                         */
                         /**---------------------------------------------------*/
                         alert(JSON.stringify(result));
-                        var shellCommand = pathWrite + '\ /q\ /x\ /l' +
+                        var shellCommand = config.pathWrite + '\ /q\ /x\ /l' +
                                            config.pathEffector + '/' + 
                                            config.fileEffector + '\ ' +
                                            files[i].path;
@@ -265,8 +242,8 @@ function createPhembot (receptor, secondMessenger) {
 }
 */
 
-    var phembotFileName = pathRemote + '/' + config.pathRemotePhembots + '/bot' + util.getTimeStamp() + '.json';
-//    var phembotFileName = pathRemote + '/' + config.pathRemotePhembots + '/thenewbot.json';
+    var phembotFileName = config.pathRemote + '/' + config.pathRemotePhembots + '/bot' + util.getTimeStamp() + '.json';
+//    var phembotFileName = config.pathRemote + '/' + config.pathRemotePhembots + '/thenewbot.json';
     fs.writeFile(phembotFileName, JSON.stringify(phembot), function (err) {
         if (err) {
             console.log(err);
