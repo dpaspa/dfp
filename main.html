@@ -207,7 +207,7 @@
     <ul class="list-task">
       {{#cc}}
       <li class="item-container">
-        <p class="info"><a href="" target="cc_{{_id}}">{{title}}</a></p>
+        <p class="info"><a href="" target="listCC_{{_id}}">{{title}}</a></p>
 	    <p class="desc">by <strong>{{type}}</strong> on <strong>{{status}}</strong></p>
 	    <p class="location">{{ref}}</p>
         <div class="progress"></div>
@@ -220,7 +220,7 @@
     <ul class="list-task">
       {{#check}}
       <li class="item-container">
-        <p class="info"><a href="" target="check_{{_id}}">{{title}}</a></p>
+        <p class="info"><a href="" target="listCheck_{{_id}}">{{title}}</a></p>
 	    <p class="desc">by <strong>{{type}}</strong> on <strong>{{status}}</strong></p>
 	    <p class="location">{{ref}}</p>
         <div class="progress"></div>
@@ -233,7 +233,7 @@
     <ul class="list-task">
       {{#do}}
       <li class="item-container">
-        <p class="info"><a href="" target="do_{{_id}}">{{title}}<i>hello</i></a></p>
+        <p class="info"><a href="" target="listDo_{{_id}}">{{title}}<i>hello</i></a></p>
         <p class="location">Type {{type}} with status {{status}}</p>
 	    <p class="desc">By <strong>{{task.rolePrimary}}</strong> on <strong>{{task.nextDue}}</strong></p>
         <div class="progress" percent="{{progress}}"></div>
@@ -279,7 +279,7 @@
     <ul class="list-task">
       {{#ofi}}
       <li class="item-container">
-        <p class="info"><a href="" target="ofi_{{_id}}">{{title}}</a></p>
+        <p class="info"><a href="" target="listOFI_{{_id}}">{{title}}</a></p>
 	    <p class="desc">by <strong>{{type}}</strong> on <strong>{{status}}</strong></p>
 	    <p class="location">{{ref}}</p>
         <div class="progress"></div>
@@ -292,7 +292,7 @@
     <ul class="list">
       {{#plan}}
       <li>
-        <p class="info"><a href="" target="plan_{{_id}}">{{title}}</a></p>
+        <p class="info"><a href="" target="listPlan_{{_id}}">{{title}}</a></p>
 	    <p class="desc">{{name}}</>
       </li>
       {{/plan}}

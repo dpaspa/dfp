@@ -44,7 +44,6 @@ var flipped = false;
 var armedRoll = true;
 var armedUnroll = false;
 var lastdynamic;
-var loginAttemptCount = 0;
 var flipped = false;
 var searchText = '';
 
@@ -167,7 +166,7 @@ document.body.addEventListener('click', function(e) {
     if (!el) return;
 
     /**-----------------------------------------------------------------------*/
-    /** Get the target of the html object and check that is valid. The list   */
+    /** Get the target of the html object and check it is valid. The list     */
     /** items have their object type and id as the href target attribute:     */
     /**-----------------------------------------------------------------------*/
     var ref = el.target;
@@ -178,32 +177,39 @@ document.body.addEventListener('click', function(e) {
     /** list item type and id or name:                                        */
     /**-----------------------------------------------------------------------*/
     var delimChar = ref.indexOf("_");
+    var type = ref.substring(0, delimChar)
+    var typeRef = ref.substring(delimChar + 1);
 
     /**-----------------------------------------------------------------------*/
     /** Check if this is from the list tab for the catalog of master data     */
     /** lists:                                                                */
     /**-----------------------------------------------------------------------*/
-    if (ref.substring(0, delimChar) == 'list') {
+    if (type == 'list') {
         /**-------------------------------------------------------------------*/
         /** Get the catalog list name and the full list data from the backend */
         /** API. Send it to the renderer side:                                */
         /**-------------------------------------------------------------------*/
-        var name = ref.substring(delimChar + 1);
-        getListDetailPage(name, 0);
+        ipc.send('datatable', typeRef);
+//        getListDetailPage(name, 0);
     }
 
     /**-----------------------------------------------------------------------*/
     /** Check if this is from the phembot task list:                          */
     /**-----------------------------------------------------------------------*/
-    else if (ref.substring(0, delimChar) == 'phembot') {
+    else if (type == 'listPlan' || type == 'listDo' || 
+             type == 'listCheck' || type == 'listAct' ||
+             type == 'listCC' || type == 'listOFI') {
         /**-------------------------------------------------------------------*/
-        /** TODO:                                                             */
+        /** Get the updated phembot and and display the details:              */
         /**-------------------------------------------------------------------*/
+        ipc.send('phembot', ref);
+//        getPhembot(type, ref);
     }
     else {
         /**-------------------------------------------------------------------*/
         /** What to do:                                                       */
         /**-------------------------------------------------------------------*/
+        console.log('type ' + type + ' ref ' + typeRef);
         ipc.send('dock');
     }
 });
@@ -1006,52 +1012,51 @@ function getListMainPage(type, num, notify) {
 /**                          collection name.                                 */
 /** @param {number} num      The number of list items to get or 0 for all.    */
 /**---------------------------------------------------------------------------*/
-function getListDetailPage(name, num) {
+//function getListDetailPage(name, num) {
     /**-----------------------------------------------------------------------*/
     /** Get the requested page list URI to request the data from the server:  */
     /**-----------------------------------------------------------------------*/
-    var uri = '/table/' + name;
+//    var uri = '/table/' + name;
 
     /**-----------------------------------------------------------------------*/
     /** Set the http options to be used by the request:                       */
     /**-----------------------------------------------------------------------*/
-    var options = {
-       host: config.host,
-       port: config.port,
-       method: 'GET',
-       path: uri
-    };
+//    var options = {
+//       host: config.host,
+//       port: config.port,
+//       method: 'GET',
+//       path: uri
+//    };
 
     /**-----------------------------------------------------------------------*/
     /** Define the callback function used to deal with the response:          */
     /**-----------------------------------------------------------------------*/
-    var callback = function (response) {
+//    var callback = function (response) {
         /**-------------------------------------------------------------------*/
         /** Continuously update the stream with data as it arrives:           */
         /**-------------------------------------------------------------------*/
-        var body = '';
-        response.on('data', function(data) {
-            body += data;
-        });
+//        var body = '';
+//        response.on('data', function(data) {
+//            body += data;
+//        });
 
         /**-------------------------------------------------------------------*/
         /** The data has been received completely:                            */
         /**-------------------------------------------------------------------*/
-        response.on('end', function() {
+//        response.on('end', function() {
             /**---------------------------------------------------------------*/
             /** Display the detail list form:                                 */
             /**---------------------------------------------------------------*/
-//            var data = JSON.parse(body);
-            ipc.send('datatable', name);
-        });
-    }
+//            ipc.send('datatable', name);
+//        });
+//    }
 
     /**-----------------------------------------------------------------------*/
     /** Make a request to the server:                                         */
     /**-----------------------------------------------------------------------*/
-    var req = http.request (options, callback);
-    req.end();
-}
+//    var req = http.request (options, callback);
+//    req.end();
+//}
 
 
 /**---------------------------------------------------------------------------*/
@@ -1061,7 +1066,7 @@ function getListDetailPage(name, num) {
 /** @param {string} type     The type of list object.                         */
 /** @param {number} data     The list data to post.                           */
 /**---------------------------------------------------------------------------*/
-function postData(type, obj){
+function postData(type, obj) {
     /**-----------------------------------------------------------------------*/
     /** Set the API URI to post the data to:                                  */
     /**-----------------------------------------------------------------------*/
@@ -1095,63 +1100,49 @@ function postData(type, obj){
     });
 }
 
+/**---------------------------------------------------------------------------*/
+/** Function: updatePhembot                                                   */
+/** Updates the phembot data from the server.                                 */
+/**                                                                           */
+/** @param {string} type     The type of list object.                         */
+/** @param {number} data     The list data to post.                           */
+/**---------------------------------------------------------------------------*/
+//function getPhembot(type, id) {
+    /**-----------------------------------------------------------------------*/
+    /** Set the http options to be used by the request:                       */
+    /**-----------------------------------------------------------------------*/
+//    var options = {
+//       host: config.host,
+//       port: config.port,
+//       method: 'GET',
+//       path: '/phembot/list/' + type + '/id/' + id
+//    };
+
     /**-----------------------------------------------------------------------*/
     /** Define the callback function used to deal with the response:          */
     /**-----------------------------------------------------------------------*/
 //    var callback = function (response) {
         /**-------------------------------------------------------------------*/
-        /** Report any error:                                                 */
+        /** Continuously update the stream with data as it arrives:           */
+        /**-------------------------------------------------------------------*/
+//        var body = '';
+//        response.on('data', function(data) {
+//            body += data;
+//        });
+
+        /**-------------------------------------------------------------------*/
+        /** The data has been received completely:                            */
         /**-------------------------------------------------------------------*/
 //        response.on('end', function() {
             /**---------------------------------------------------------------*/
-            /** Report the response:                                          */
+            /** If a phembot and task due notifications are required then     */
             /**---------------------------------------------------------------*/
-//            console.log(response);
+//            var data = JSON.parse(body);
+//            console.log(data);
 //        });
 //    }
+//}
 
-    /**-----------------------------------------------------------------------*/
-    /** Make a request to the server with JSON encoding:                      */
-    /**-----------------------------------------------------------------------*/
-//    var req = http.request (options, callback);
-//    options.headers['Content-Type'] = 'application/json';
-/*    options.headers['Content-Type'] = 'X-www-form-urlencoded'; // 'application/json';
-    var data = querystring.stringify({
-        'compilation_level' : 'ADVANCED_OPTIMIZATIONS',
-        'output_format': 'json',
-        'output_info': 'compiled_code',
-        'warning_level' : 'QUIET',
-        'js_code' : JSON.stringify(obj)
-    });
-*/
-
-//    var data = JSON.stringify(obj);
-//    req.data = JSON.stringify(data);
-//    req.body = data;
-//    console.log(req.body);
-//    options.headers['Content-Length'] = Buffer.byteLength(JSON.stringify(data));
-//    console.log(body);
-//    console.log(JSON.stringify(data));
-//    req.write(JSON.stringify(data));
-//    req.body = data;
-//    req.write(data);
-//    req.body = JSON.stringify(obj);
-//    req.end();
-
-/*     console.log(config.host + ':' + config.port + uri);
-
-    request.post({
-      url: config.host + ':' + config.port + uri,
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(data)
-      },
-      body: data
-    }, function(err, response, body){
-      console.log(body);
-    });
-}
-*/
 
 /*
 function DrawSpiral(mod) {

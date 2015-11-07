@@ -148,102 +148,76 @@ function createPhembot (receptor, secondMessenger) {
     /** Set the API URI to post the data to:                                  */
     /**-----------------------------------------------------------------------*/
     var phembot = {
-    'ref': 'T1',
-    'type': 'CAL',
-    'status': 'O',
-    'title': 'Calibration of KA-100 Weighing Balance',
-    'icon': 'cal.png',
-    'receptor': {
-        "idCollection": "",
-        "idDocument": "",
-        "idPhembot": "",
-        "ref": "D67",
-        "type": "Instruction",
-        "version": 1,
-        "title": "Product X",
-        "save": false,
-        "close": true,
-        'document': receptor
-    },
-    'messenger': {
-        'precedence': [
-            'css'
-        ],
-        'css': {
-            'effector': 'write',
-            'userConfirm': true,
-            'userMessage': 'Overwrite application style sheet?',
-            'save': false,
-            'close': true,
-            "request": {
-                "outputPath": "X:/Business/ipoogi/development/electron/theme-active.css"
-            },
-            "response": {
-            },
-            "error": {
+        'ref': 'T1',
+        'type': 'CAL',
+        'status': 'O',
+        'title': 'Calibration of KA-100 Weighing Balance',
+        'icon': 'cal.png',
+        'receptor': {
+            "idCollection": "",
+            "idDocument": "",
+            "idPhembot": "",
+            "ref": "D67",
+            "type": "Instruction",
+            "version": 1,
+            "title": "Product X",
+            "save": false,
+            "close": true,
+            'document': receptor
+        },
+        'messenger': {
+            'precedence': [
+                'css'
+            ],
+            'css': {
+                'effector': 'write',
+                'userConfirm': true,
+                'userMessage': 'Overwrite application style sheet?',
+                'save': false,
+                'close': true,
+                "request": {
+                    "outputPath": "X:/Business/ipoogi/development/electron/theme-active.css"
+                },
+                "response": {
+                },
+                "error": {
+                }
             }
+        },
+        'user': {
+            'name': 'David Paspa',
+            'timezone': 'Asia/Singapore',
+            'uriAPI': 'http://localhost:8888/api/',
+            'website': 'http://ipoogi.com',
+            'feedback': 'http://ipoogi.com',
+            "pathWrite": "c:/Program Files/Microsoft Office/Office14/winword",
+            "pathSheet": "c:/Program Files/Microsoft Office/Office14/excel",
+            "pathRemote": "X:/business/ipoogi/qms",
+            'pathRemoteLogo': 'logo.png',
+            'pathRemoteEffector': 'effectors',
+            'pathRemoteMessengers': 'effectors',
+            'pathRemotePhembots': 'phembots',
+            'pathRemoteReceptors': 'receptors',
+            'fileRemoteEffector': 'pb.dotm',
+            'pathLocal': 'x:/Business/ipoogi/files',
+            'pathLocalReceptorsIn': 'receptors/in',
+            'pathLocalReceptorsOut': 'receptors/out',
+            'pathLocalPhembotsIn': 'effectors/in',
+            'pathLocalPhembotsOut': 'effectors/out',
+            'pathLocalReceptors': 'x:/business/ipoogi'
+        },
+        "error": {
+            "number": 0,
+            "procedure": "",
+            "message": "",
+            "parameters": []
+        },
+        "history": {
         }
-    },
-    'user': {
-        'name': 'David Paspa',
-        'timezone': 'Asia/Singapore',
-        'uriAPI': 'http://localhost:8888/api/',
-        'website': 'http://ipoogi.com',
-        'feedback': 'http://ipoogi.com',
-        "pathWrite": "c:/Program Files/Microsoft Office/Office14/winword",
-        "pathSheet": "c:/Program Files/Microsoft Office/Office14/excel",
-        "pathRemote": "X:/business/ipoogi/qms",
-        'pathRemoteLogo': 'logo.png',
-        'pathRemoteEffector': 'effectors',
-        'pathRemoteMessengers': 'effectors',
-        'pathRemotePhembots': 'phembots',
-        'pathRemoteReceptors': 'receptors',
-        'fileRemoteEffector': 'pb.dotm',
-        'pathLocal': 'x:/Business/ipoogi/files',
-        'pathLocalReceptorsIn': 'receptors/in',
-        'pathLocalReceptorsOut': 'receptors/out',
-        'pathLocalPhembotsIn': 'effectors/in',
-        'pathLocalPhembotsOut': 'effectors/out',
-        'pathLocalReceptors': 'x:/business/ipoogi'
-    },
-    "error": {
-        "number": 0,
-        "procedure": "",
-        "message": "",
-        "parameters": []
-    },
-    "history": {
     }
-}
 
-
-/*
-    var phembot = {
-    contentPayload: {
-        doc: 'D11',
-        logo: 'q:/logo.png',
-        ref: 'P72',
-        title: 'Product x',
-        type: 'BMR',
-        ver: '1',
-        secondMessenger: config.pathRemote + '/' + config.pathMessengers + '/' + secondMessenger + '.dotm',
-        receptor: receptor,
-        saveReceptor: 'False',
-        closeReceptor: 'True'
-    },
-    css: {
-        userConfirm: 'True',
-        userMessage: 'Overwrite application style sheet?',
-        msgData: {
-            outputPath: __dirname + '/theme-active.css'
-        }
-    },
-    contentHistory: {}
-}
-*/
 
     var phembotFileName = config.pathRemote + '/' + config.pathRemotePhembots + '/bot' + util.getTimeStamp() + '.json';
-//    var phembotFileName = config.pathRemote + '/' + config.pathRemotePhembots + '/thenewbot.json';
     fs.writeFile(phembotFileName, JSON.stringify(phembot), function (err) {
         if (err) {
             console.log(err);

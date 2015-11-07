@@ -12,6 +12,7 @@
     "cron": "^1.0.9",
     "electron": "^0.4.1",
     "electron-google-oauth": "^1.1.0",
+    "jquery": "^2.1.4",
     "menubar": "^2.0.11",
     "moment-timezone": "^0.3.1",
     "node-notifier": "^4.2.1"

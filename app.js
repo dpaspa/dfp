@@ -63,7 +63,17 @@ app.on('ready', function() {
     /** the app is ready:                                                     */
     /**-----------------------------------------------------------------------*/
     atomScreen = require('screen');
+
+    /**-----------------------------------------------------------------------*/
+    /** Set all the windows to the same size and position based on the screen */
+    /** display dimensions:                                                   */
+    /** TODO: Window animations.                                              */
+    /**-----------------------------------------------------------------------*/
     var size = atomScreen.getPrimaryDisplay().workAreaSize;
+    var finalWidth = size.width-350-70;
+    var finalHeight = size.height-200;
+    var finalX = 70;
+    var finalY = 100;
 
     /**-----------------------------------------------------------------------*/
     /** Roll up events:                                                       */
@@ -76,23 +86,24 @@ app.on('ready', function() {
     /**-----------------------------------------------------------------------*/
     var userWindow = new BrowserWindow({
         title: 'Desktop Focal Point User Login',
-        width: 350,
-        height: 350,
-        transparent: false,
+        width: finalWidth,
+        height: finalHeight,
         "skip-taskbar": true,
         "always-on-top": true,
-        frame: false
+        frame: false,
+        transparent: false
     });
 
     /**-----------------------------------------------------------------------*/
     /** Set the position to the right of the screen:                          */
     /**-----------------------------------------------------------------------*/
-    userWindow.setPosition(size.width-350, size.height/2 - 175);
+    userWindow.setPosition(finalX, finalY);
 
     /**-----------------------------------------------------------------------*/
     /** Load the user html page of the app:                                   */
     /**-----------------------------------------------------------------------*/
-    userWindow.loadUrl('file://' + __dirname + '/user.html');
+    userWindow.loadUrl('http://' + config.host + ':' + config.port + '/user/login');
+//    userWindow.loadUrl('file://' + __dirname + '/user.html');
 
     /**-----------------------------------------------------------------------*/
     /** Create the main browser window for the application:                   */
@@ -210,31 +221,6 @@ app.on('ready', function() {
     /**************************************************************************/
 
     /**-----------------------------------------------------------------------*/
-    /** Set all the windows to the same size and position based on the screen */
-    /** display dimensions:                                                   */
-    /** TODO: Window animations.                                              */
-    /**-----------------------------------------------------------------------*/
-    var size = atomScreen.getPrimaryDisplay().workAreaSize;
-    var finalWidth = size.width-350-70;
-    var finalHeight = size.height-200;
-    var finalX = 70;
-    var finalY = 100;
-
-    /**-----------------------------------------------------------------------*/
-    /** Instantiate the windows but make don't make them visible.             */
-    /** Create the calendar window:                                           */
-    /**-----------------------------------------------------------------------*/
-    var calendarWindow = new BrowserWindow({
-        title: 'Desktop Focal Point Calendar',
-        width: finalWidth,
-        height: finalHeight,
-        "skip-taskbar": true,
-        frame: false,
-        transparent: false,
-        show: false
-    });
-
-    /**-----------------------------------------------------------------------*/
     /** Create the dashboard window:                                          */
     /**-----------------------------------------------------------------------*/
     var dashboardWindow = new BrowserWindow({
@@ -276,7 +262,6 @@ app.on('ready', function() {
     /**-----------------------------------------------------------------------*/
     /** Set all the positions to be the same:                                 */
     /**-----------------------------------------------------------------------*/
-    calendarWindow.setPosition(finalX, finalY);
     dashboardWindow.setPosition(finalX, finalY);
     learningWindow.setPosition(finalX, finalY);
     utilWindow.setPosition(finalX, finalY);
@@ -289,38 +274,6 @@ app.on('ready', function() {
 //    learningWindow.loadUrl('file://' + __dirname + '/learning.html');
 //    dashboardWindow.loadUrl('file://' + __dirname + '/dashboard.html');
 //    learningWindow.loadUrl('file://' + __dirname + '/learn.html?chunk=' + chunk);
-
-    /**************************************************************************/
-    /**                                                                       */
-    /** GOOGLE AUTHORIZATION   GOOGLE AUTHORIZATION   GOOGLE AUTHORIZATION    */
-    /**                                                                       */
-    /** Use the Google API to access the calendar.                            */
-    /**************************************************************************/
-
-    /**-----------------------------------------------------------------------*/
-    /** Perform Google authorization to use the Calendar API:                 */
-    /**-----------------------------------------------------------------------*/
-    var googleOauth = electronGoogleOauth(calendarWindow);
-
-    /**-----------------------------------------------------------------------*/
-    /** Retrieve authorization code only:                                     */
-    /** TODO: Replace with config setting.                                    */
-    /**-----------------------------------------------------------------------*/
-    var authCode = googleOauth.getAuthorizationCode(
-        ['https://www.google.com/m8/feeds'],
-        '818711560460-ocobmj32fqklf9nd04mqjqerloc2qhnk.apps.googleusercontent.com',
-        '1Runtywm59xTHd5z8EWznmzd'
-    );
-
-    /**-----------------------------------------------------------------------*/
-    /** Retrieve access token and refresh token:                              */
-    /** TODO: Replace with config setting.                                    */
-    /**-----------------------------------------------------------------------*/
-    var result = googleOauth.getAccessToken(
-        ['https://www.google.com/m8/feeds'],
-        '818711560460-ocobmj32fqklf9nd04mqjqerloc2qhnk.apps.googleusercontent.com',
-        '1Runtywm59xTHd5z8EWznmzd'
-    );
 
     /**************************************************************************/
     /**                                                                       */
@@ -374,7 +327,7 @@ app.on('ready', function() {
     /** quitting the application:                                             */
     /**-----------------------------------------------------------------------*/
     ipc.on('quit', function() {
-        calendarWindow.close();
+//        calendarWindow.close();
         dashboardWindow.close();
         learningWindow.close();
         userWindow.close();
@@ -386,13 +339,31 @@ app.on('ready', function() {
     /** Process the calendar label click event:                               */
     /**-----------------------------------------------------------------------*/
     ipc.on('calendar', function() {
-        if (calendarWindow.isVisible()) {
-            calendarWindow.hide();
-            mainWindow.webContents.send('calendarClose');
-        }
-        else {
-            calendarWindow.loadUrl('http://' + config.host + ':' + config.port + '/page/calendar');
-            calendarWindow.show();
+        /**-----------------------------------------------------------------------*/
+        /** Instantiate the windows but make don't make them visible.             */
+        /** Create the calendar window:                                           */
+        /**-----------------------------------------------------------------------*/
+        var calendarWindow = new BrowserWindow({
+            title: 'Desktop Focal Point Calendar',
+            width: finalWidth,
+            height: finalHeight,
+            "skip-taskbar": true,
+            frame: false,
+            transparent: false,
+            show: false
+        });
+
+        /**-------------------------------------------------------------------*/
+        /** Display the data table window:                                    */
+        /**-------------------------------------------------------------------*/
+        calendarWindow.setPosition(finalX, finalY);
+        calendarWindow.loadUrl('http://' + config.host + ':' + config.port + '/calendar');
+        calendarWindow.show();
+//        if (calendarWindow.isVisible()) {
+//            calendarWindow.hide();
+//            mainWindow.webContents.send('calendarClose');
+//        }
+//        else {
 /*
             request('http://127.0.0.1:8888/calendar', function (error, response, body) {
                 if (!error && response.statusCode == 200) {
@@ -402,16 +373,16 @@ app.on('ready', function() {
                 }
             })
 */
-        }
+//        }
     });
 
     /**-----------------------------------------------------------------------*/
     /** Process the calendar window close button click event:                 */
     /**-----------------------------------------------------------------------*/
-    ipc.on('calendarClose', function(arg) {
-        calendarWindow.hide();
-        mainWindow.webContents.send('calendarClose');
-    });
+//    ipc.on('calendarClose', function(arg) {
+//        calendarWindow.hide();
+//        mainWindow.webContents.send('calendarClose');
+//    });
 
     /**-----------------------------------------------------------------------*/
     /** Process the dashboard label click event:                              */
@@ -446,7 +417,7 @@ app.on('ready', function() {
     /**-----------------------------------------------------------------------*/
     ipc.on('learning', function(event, searchText) {
         console.log(searchText);
-        learningWindow.loadUrl('http://' + config.host + ':' + config.port + '/page/learning.html?search=' + searchText);
+        learningWindow.loadUrl('http://' + config.host + ':' + config.port + '/learning.html?search=' + searchText);
         learningWindow.show();
     });
 
@@ -497,10 +468,43 @@ app.on('ready', function() {
     });
 
     /**-----------------------------------------------------------------------*/
+    /** Process the phembot list item click event:                            */
+    /**-----------------------------------------------------------------------*/
+    ipc.on('phembot', function(event, ref) {
+        /**-------------------------------------------------------------------*/
+        /** Create the phembot detail window:                                 */
+        /**-------------------------------------------------------------------*/
+        var phembotWindow = new BrowserWindow({
+            title: 'Phembot Details',
+            width: finalWidth,
+            height: finalHeight,
+            "skip-taskbar": true,
+            frame: false,
+            transparent: false,
+            show: false
+        });
+
+        /**-------------------------------------------------------------------*/
+        /** Get the phembot type and id so the data can be queried from the   */
+        /** server:                                                           */
+        /**-------------------------------------------------------------------*/
+        var delimChar = ref.indexOf("_");
+        var type = ref.substring(0, delimChar)
+        var id = ref.substring(delimChar + 1);
+
+        /**-------------------------------------------------------------------*/
+        /** Display the phembot data window:                                  */
+        /**-------------------------------------------------------------------*/
+        phembotWindow.setPosition(finalX, finalY);
+        phembotWindow.loadUrl('http://' + config.host + ':' + config.port + '/phembot/' + type + '/id/' + id);
+        phembotWindow.show();
+    });
+
+    /**-----------------------------------------------------------------------*/
     /** Process an OS shell command execution event:                          */
     /**-----------------------------------------------------------------------*/
     ipc.on('prefs', function(event, arg) {
-        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/page/preferences.html');
+        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/preferences');
         utilWindow.show();
     });
 
@@ -538,7 +542,7 @@ app.on('ready', function() {
             width: 400,
             height: 340
         });
-        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/page/user/login');
+        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/user/profile');
         utilWindow.show();
     });
 
@@ -552,7 +556,7 @@ app.on('ready', function() {
             width: 400,
             height: 340
         });
-        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/page/user/register');
+        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/user/register');
         utilWindow.show();
     });
 
