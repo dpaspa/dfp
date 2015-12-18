@@ -12,7 +12,13 @@
 'use strict';
 
 /**---------------------------------------------------------------------------*/
-/** Declare module level variables included from local application files:     */
+/** Define a global object variable to store the application context for this */
+/** session:                                                                  */
+/**---------------------------------------------------------------------------*/
+var appContext = {};
+
+/**---------------------------------------------------------------------------*/
+/** Declare the local server configuration settings:                          */
 /**---------------------------------------------------------------------------*/
 var config = require('./config');
 
@@ -21,24 +27,106 @@ var config = require('./config');
 /**---------------------------------------------------------------------------*/
 var app = require('app');                      // Control application life
 var BrowserWindow = require('browser-window'); // Create native browser window
+var commandLineArgs = require('command-line-args');
 var request = require('request');
-var ipc = require('ipc');                      // Inter-process communication
+const ipcMain = require('electron').ipcMain;         // Inter-process communication
 var menubar = require('menubar');
 var electronGoogleOauth = require('electron-google-oauth');
 var shell = require('shelljs');
 var io = require('socket.io');
 var fs = require('fs');
+var open = require("open");
+
+/**---------------------------------------------------------------------------*/
+/** Define the command line argument interface:                               */
+/**---------------------------------------------------------------------------*/
+const optionDefinitions = [
+    {
+        name: 'help', description: 'Display this usage guide.',
+        alias: 'h', type: Boolean, defaultValue: false
+    },
+    {
+        name: 'profile', description: 'User environment profile to use.',
+        alias: 'p', type: String, defaultValue: 'default'
+    },
+    {
+        name: 'view', description: 'View to show on startup.',
+        alias: 'v', type: String, defaultValue: 'do'
+    }
+];
+
+const optionTitles = {
+    title: 'Desktop focalPoint',
+    description: 'The client front end focal point for the ipoogi QMS.',
+    footer: 'Project home: [underline]{https://ipoogi.com}'
+};
+
+/**---------------------------------------------------------------------------*/
+/** Get the command line arguments:                                           */
+/**---------------------------------------------------------------------------*/
+var cli = commandLineArgs(optionDefinitions, optionTitles);
+var options = cli.parse();
+
+/**---------------------------------------------------------------------------*/
+/** Display the help information and exit if help option specified:           */
+/**---------------------------------------------------------------------------*/
+if (options.help) {
+    console.log(cli.getUsage(optionDefinitions, optionTitles))
+    app.quit();
+}
+
+/**---------------------------------------------------------------------------*/
+/** Get the startup view and user profile to use:                             */
+/**---------------------------------------------------------------------------*/
+appContext.startProfile = options.profile;
+appContext.startView = options.view;
+
+/*----------------------------------------------------------------------------*/
+/** Get the server host and port settings:                                    */
+/*----------------------------------------------------------------------------*/
+config.getConfig(appContext);
 
 /**---------------------------------------------------------------------------*/
 /** Keep a global reference to the window object. If not, the window will be  */
-/** closed automatically when the JavaScript object is GCed:                  */
+/** closed automatically when the JavaScript object is GCed. chatWindow is    */
+/** global as their can be only one:                                          */
 /**---------------------------------------------------------------------------*/
+var chatWindow = null;
 var mainWindow = null;
 
 /**---------------------------------------------------------------------------*/
-/** Keep a global reference to the screen object and the other windows:       */
+/** Keep a global reference to the screen object for window sizing:           */
 /**---------------------------------------------------------------------------*/
 var atomScreen = null;
+
+/**---------------------------------------------------------------------------*/
+/** Add an entry in the menu bar as an application short cut and task bar     */
+/** menu:                                                                     */
+/**---------------------------------------------------------------------------*/
+var mb = menubar({
+    preloadWindow: true,
+    width: 200,
+    height: 210,
+    'window-position': 'topRight',
+    index: 'file://' + __dirname + '/mb.html',
+    icon: __dirname + '/images/IconTemplate.png'
+});
+
+/**---------------------------------------------------------------------------*/
+/** This method will be called when the menu bar is ready:                    */
+/**---------------------------------------------------------------------------*/
+mb.on('after-create-window', function ready () {
+    /**-----------------------------------------------------------------------*/
+    /** Menu bar click event:                                                 */
+    /**-----------------------------------------------------------------------*/
+    mb.on('click', function () {
+        var trayBounds;
+        mb.positioner.move('topRight');
+        mb.positioner.calculate('topRight', trayBounds);
+        console.log(JSON.stringify(trayBounds));
+        mb.showWindow();
+    });
+});
 
 /**---------------------------------------------------------------------------*/
 /** Quit method when all windows are closed:                                  */
@@ -52,6 +140,16 @@ app.on('window-all-closed', function() {
         app.quit();
     }
 });
+
+/**---------------------------------------------------------------------------*/
+/** Declare module level variables included from other node packages:         */
+/**---------------------------------------------------------------------------*/
+// var os = require('os');
+
+/*----------------------------------------------------------------------------*/
+/** Process according to operating system platform:                           */
+/*----------------------------------------------------------------------------*/
+// var osName = os.platform();
 
 /**---------------------------------------------------------------------------*/
 /** This method will be called when Electron has finished initialization and  */
@@ -70,10 +168,10 @@ app.on('ready', function() {
     /** TODO: Window animations.                                              */
     /**-----------------------------------------------------------------------*/
     var size = atomScreen.getPrimaryDisplay().workAreaSize;
-    var finalWidth = size.width-350-70;
-    var finalHeight = size.height-200;
     var finalX = 70;
     var finalY = 100;
+    var finalWidth = size.width-350-finalX;
+    var finalHeight = size.height-(2 * finalY);
 
     /**-----------------------------------------------------------------------*/
     /** Roll up events:                                                       */
@@ -82,12 +180,41 @@ app.on('ready', function() {
     var currentWidth;
 
     /**-----------------------------------------------------------------------*/
-    /** Create the main browser window for the application:                   */
+    /** Create the player window for the application:                         */
     /**-----------------------------------------------------------------------*/
+    var playerWindow = new BrowserWindow({
+        title: 'focalPoint phembot player',
+        width: 227,
+        height: size.height,
+        "skip-taskbar": true,
+        "always-on-top": true,
+        frame: false,
+        transparent: false,
+        show: false
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Set the position to the right of the screen:                          */
+    /**-----------------------------------------------------------------------*/
+    playerWindow.setPosition(size.width-227, 0);
+
+    /**-----------------------------------------------------------------------*/
+    /** Load the player page of the app:                                      */
+    /**-----------------------------------------------------------------------*/
+    playerWindow.loadURL('http://' + appContext.serverConfig.host + ':' + 
+                         appContext.serverConfig.port + '/phembot/player');
+
+    /**-----------------------------------------------------------------------*/
+    /** Create the user login window for the application:                     */
+    /**-----------------------------------------------------------------------*/
+    var userWidth = 800;
+    var userHeight = 420;
+    var userX = (size.width - userWidth) / 2;
+    var userY = (size.height - userHeight) / 2;
     var userWindow = new BrowserWindow({
-        title: 'Desktop Focal Point User Login',
-        width: finalWidth,
-        height: finalHeight,
+        title: 'focalPoint user login',
+        width: userWidth,
+        height: userHeight,
         "skip-taskbar": true,
         "always-on-top": true,
         frame: false,
@@ -97,19 +224,19 @@ app.on('ready', function() {
     /**-----------------------------------------------------------------------*/
     /** Set the position to the right of the screen:                          */
     /**-----------------------------------------------------------------------*/
-    userWindow.setPosition(finalX, finalY);
+    userWindow.setPosition(userX, userY);
 
     /**-----------------------------------------------------------------------*/
     /** Load the user html page of the app:                                   */
     /**-----------------------------------------------------------------------*/
-    userWindow.loadUrl('http://' + config.host + ':' + config.port + '/user/login');
-//    userWindow.loadUrl('file://' + __dirname + '/user.html');
+    userWindow.loadURL('http://' + appContext.serverConfig.host + ':' + appContext.serverConfig.port + '/user/login');
+//    userWindow.webContents.send('dashboardClose');
 
     /**-----------------------------------------------------------------------*/
     /** Create the main browser window for the application:                   */
     /**-----------------------------------------------------------------------*/
     mainWindow = new BrowserWindow({
-        title: 'Desktop Focal Point',
+        title: 'focalPoint',
         width: 350,
         height: size.height,
         transparent: false,
@@ -127,15 +254,23 @@ app.on('ready', function() {
 //    mainWindow.setVisibleOnAllWorkspaces(true);
 
     /**-----------------------------------------------------------------------*/
-    /** Load the main html page of the app:                                   */
-    /**-----------------------------------------------------------------------*/
-    mainWindow.loadUrl('file://' + __dirname + '/main.html');
-
-    /**-----------------------------------------------------------------------*/
     /** Ensure the main window is always shown top most:                      */
     /**-----------------------------------------------------------------------*/
-    var mainOnTop = setInterval(function(){
-        mainWindow.setAlwaysOnTop(true);
+    var mainOnTop = setInterval(function() {
+        if (mainWindow === null) {
+        }
+        else if (mainWindow.isVisible()) {
+            mainWindow.setAlwaysOnTop(true);
+        }
+
+        /**-------------------------------------------------------------------*/
+        /** Unless the player window is on top:                               */
+        /**-------------------------------------------------------------------*/
+        if (playerWindow === null) {
+        }
+        else if (playerWindow.isVisible()) {
+            playerWindow.setAlwaysOnTop(true);
+        }
     }, 10);
 
     /**-----------------------------------------------------------------------*/
@@ -154,6 +289,13 @@ app.on('ready', function() {
         /** the corresponding element.                                        */
         /**-------------------------------------------------------------------*/
         mainWindow = null;
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Set up the player window close event emitter callback:                */
+    /**-----------------------------------------------------------------------*/
+    playerWindow.on('closed', function() {
+        playerWindow = null;
     });
 
     /**-----------------------------------------------------------------------*/
@@ -215,77 +357,22 @@ app.on('ready', function() {
 
     /**************************************************************************/
     /**                                                                       */
-    /** WINDOWS   WINDOWS   WINDOWS   WINDOWS   WINDOWS   WINDOWS   WINDOWS   */
-    /**                                                                       */
-    /** Set up the other application windows.                                 */
-    /**************************************************************************/
-
-    /**-----------------------------------------------------------------------*/
-    /** Create the dashboard window:                                          */
-    /**-----------------------------------------------------------------------*/
-    var dashboardWindow = new BrowserWindow({
-        title: 'Desktop Focal Point Dashboard',
-        width: finalWidth,
-        height: finalHeight,
-        "skip-taskbar": true,
-        frame: false,
-        transparent: false,
-        show: false
-    });
-
-    /**-----------------------------------------------------------------------*/
-    /** Create the learning window:                                           */
-    /**-----------------------------------------------------------------------*/
-    var learningWindow = new BrowserWindow({
-        title: 'Desktop Focal Point Learning Chunks',
-        width: finalWidth,
-        height: finalHeight,
-        "skip-taskbar": true,
-        frame: false,
-        transparent: false,
-        show: false
-    });
-
-    /**-----------------------------------------------------------------------*/
-    /** Create the utility window:                                            */
-    /**-----------------------------------------------------------------------*/
-    var utilWindow = new BrowserWindow({
-        title: 'Desktop Focal Point Utility',
-        width: finalWidth,
-        height: finalHeight,
-        "skip-taskbar": true,
-        frame: false,
-        transparent: false,
-        show: false
-    });
-
-    /**-----------------------------------------------------------------------*/
-    /** Set all the positions to be the same:                                 */
-    /**-----------------------------------------------------------------------*/
-    dashboardWindow.setPosition(finalX, finalY);
-    learningWindow.setPosition(finalX, finalY);
-    utilWindow.setPosition(finalX, finalY);
-
-    /**-----------------------------------------------------------------------*/
-    /** Load the URIs of the windows:                                         */
-    /**-----------------------------------------------------------------------*/
-//    calendarWindow.loadUrl('file://' + __dirname + '/calendar.html');
-    dashboardWindow.loadUrl('http://127.0.0.1:3030/sample');
-//    learningWindow.loadUrl('file://' + __dirname + '/learning.html');
-//    dashboardWindow.loadUrl('file://' + __dirname + '/dashboard.html');
-//    learningWindow.loadUrl('file://' + __dirname + '/learn.html?chunk=' + chunk);
-
-    /**************************************************************************/
-    /**                                                                       */
     /** IPC   IPC   IPC   IPC   IPC   IPC   IPC   IPC   IPC   IPC   IPC   IPC */
     /**                                                                       */
     /** Inter-process communication events.                                   */
     /**************************************************************************/
 
     /**-----------------------------------------------------------------------*/
+    /** Open the document store website URI:                                  */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('docstore', function() {
+        open(appContext.user.docstore);
+    });
+
+    /**-----------------------------------------------------------------------*/
     /** Set up the window lost focus event emitter callback:                  */
     /**-----------------------------------------------------------------------*/
-    ipc.on('doRoll', function() {
+    ipcMain.on('doRoll', function() {
         var sizeMain = mainWindow.getSize();
         currentWidth = sizeMain[0];
         rollInterval = setInterval(function () {windowTransition(-5)}, 3);
@@ -294,7 +381,7 @@ app.on('ready', function() {
     /**-----------------------------------------------------------------------*/
     /** Set up the window gains focus event emitter callback:                 */
     /**-----------------------------------------------------------------------*/
-    ipc.on('doUnroll', function() {
+    ipcMain.on('doUnroll', function() {
         var sizeMain = mainWindow.getSize();
         currentWidth = sizeMain[0];
         rollInterval = setInterval(function () {windowTransition(5)}, 3);
@@ -323,28 +410,15 @@ app.on('ready', function() {
     }
 
     /**-----------------------------------------------------------------------*/
-    /** Process the application quit event by closing all windows and         */
-    /** quitting the application:                                             */
-    /**-----------------------------------------------------------------------*/
-    ipc.on('quit', function() {
-//        calendarWindow.close();
-        dashboardWindow.close();
-        learningWindow.close();
-        userWindow.close();
-//        tableWindow.close();
-        app.quit();
-    });
-
-    /**-----------------------------------------------------------------------*/
     /** Process the calendar label click event:                               */
     /**-----------------------------------------------------------------------*/
-    ipc.on('calendar', function() {
+    ipcMain.on('calendar', function() {
         /**-----------------------------------------------------------------------*/
         /** Instantiate the windows but make don't make them visible.             */
         /** Create the calendar window:                                           */
         /**-----------------------------------------------------------------------*/
         var calendarWindow = new BrowserWindow({
-            title: 'Desktop Focal Point Calendar',
+            title: 'focalPoint calendar',
             width: finalWidth,
             height: finalHeight,
             "skip-taskbar": true,
@@ -357,79 +431,117 @@ app.on('ready', function() {
         /** Display the data table window:                                    */
         /**-------------------------------------------------------------------*/
         calendarWindow.setPosition(finalX, finalY);
-        calendarWindow.loadUrl('http://' + config.host + ':' + config.port + '/calendar');
+//        calendarWindow.loadURL('http://' + appContext.serverConfig.host + ':' + appContext.serverConfig.port + '/calendar');
+//        calendarWindow.loadURL('https://calendar.google.com/calendar/render?eid=MjAxNTExMTFfNjBvMzBjaGo2c28zMGMxZzYwbzMwZHI0Y28gZW4uYXVzdHJhbGlhbiNob2xpZGF5QHY&ctz=Asia/Calcutta&sf=true&output=xml');
+        calendarWindow.loadURL('https://calendar.google.com/calendar/render??eid=MjAxNTExMTFfNjBvMzBjaGo2c28zMGMxZzYwbzMwZHI0Y28gZW4uYXVzdHJhbGlhbiNob2xpZGF5QHY&ctz=Asia/Calcutta&sf=true&output=xml');
         calendarWindow.show();
-//        if (calendarWindow.isVisible()) {
-//            calendarWindow.hide();
-//            mainWindow.webContents.send('calendarClose');
-//        }
-//        else {
-/*
-            request('http://127.0.0.1:8888/calendar', function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    console.log(body) // Show the HTML for the Google homepage. 
-                    calendarWindow.loadUrl(body);
-                    calendarWindow.show();
-                }
-            })
-*/
-//        }
     });
 
     /**-----------------------------------------------------------------------*/
     /** Process the calendar window close button click event:                 */
     /**-----------------------------------------------------------------------*/
-//    ipc.on('calendarClose', function(arg) {
-//        calendarWindow.hide();
-//        mainWindow.webContents.send('calendarClose');
-//    });
+/*
+    ipcMain.on('chatClose', function(arg) {
+        chatWindow.hide();
+//        mainWindow.webContents.send('chatClose');
+    });
+*/
+
+    /**-----------------------------------------------------------------------*/
+    /** Chat page request:                                                    */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('chat', function(event, arg) {
+        /**-------------------------------------------------------------------*/
+        /** Check if the chat windows has not been created yet:               */
+        /**-------------------------------------------------------------------*/
+        if (!chatWindow) {
+            /**---------------------------------------------------------------*/
+            /** Create a new chat window:                                     */
+            /**---------------------------------------------------------------*/
+            var chatWidth = 400;
+            var chatHeight = 500;
+            var chatX = size.width - chatWidth - 350
+            var chatY = (size.height - chatHeight) / 2;
+            chatWindow = new BrowserWindow({
+                title: 'User Preferences',
+                width: chatWidth,
+                height: chatHeight,
+                "skip-taskbar": true,
+                frame: false,
+                transparent: false,
+                show: false
+            });
+
+            /**---------------------------------------------------------------*/
+            /** Load the chat window:                                         */
+            /**---------------------------------------------------------------*/
+            chatWindow.setPosition(chatX, chatY);
+            chatWindow.loadURL('http://' + appContext.serverConfig.host + ':' + appContext.serverConfig.port + '/chat');
+            chatWindow.show();
+        }
+        else if (chatWindow.isVisible()) {
+            chatWindow.hide();
+        }
+        else {
+            chatWindow.show();
+        }
+    });
 
     /**-----------------------------------------------------------------------*/
     /** Process the dashboard label click event:                              */
     /**-----------------------------------------------------------------------*/
-    ipc.on('dashboard', function() {
-        if (dashboardWindow.isVisible()) {
-            dashboardWindow.hide();
-            mainWindow.webContents.send('dashboardClose');
-        }
-        else {
-            dashboardWindow.show();
-        }
+    ipcMain.on('dashboard', function() {
+        /**-------------------------------------------------------------------*/
+        /** Create the dashboard window:                                      */
+        /**-------------------------------------------------------------------*/
+        var dashWidth = 500;
+        var dashHeight = size.height;
+        var dashX = size.width - dashWidth - 350
+        var dashY = (size.height - dashHeight) / 2;
+        var dashboardWindow = new BrowserWindow({
+            title: 'focalPoint dashboard',
+            width: dashWidth,
+            height: dashHeight,
+            "skip-taskbar": true,
+            frame: false,
+            transparent: false,
+            show: false
+        });
+
+        /**-------------------------------------------------------------------*/
+        /** Display the data table window:                                    */
+        /**-------------------------------------------------------------------*/
+        dashboardWindow.setPosition(dashX, dashY);
+        dashboardWindow.loadURL('http://' + appContext.serverConfig.host + ':' + appContext.serverConfig.port + '/dashboard');
+        dashboardWindow.show();
     });
 
     /**-----------------------------------------------------------------------*/
     /** Process the dashboard window close button click event:                */
     /**-----------------------------------------------------------------------*/
-    ipc.on('dashboardClose', function(arg) {
+/*
+    ipcMain.on('dashboardClose', function(arg) {
         dashboardWindow.hide();
         mainWindow.webContents.send('dashboardClose');
     });
+*/
 
     /**-----------------------------------------------------------------------*/
     /** Dock the main window:                                                 */
     /**-----------------------------------------------------------------------*/
-    ipc.on('dock', function() {
+    ipcMain.on('dock', function() {
         console.log('dock');
-    });
-
-    /**-----------------------------------------------------------------------*/
-    /** Process the search input box enter key event:                         */
-    /**-----------------------------------------------------------------------*/
-    ipc.on('learning', function(event, searchText) {
-        console.log(searchText);
-        learningWindow.loadUrl('http://' + config.host + ':' + config.port + '/learning.html?search=' + searchText);
-        learningWindow.show();
     });
 
     /**-----------------------------------------------------------------------*/
     /** Process the master data list item click event:                        */
     /**-----------------------------------------------------------------------*/
-    ipc.on('datatable', function(event, name) {
+    ipcMain.on('datatable', function(event, name) {
         /**-------------------------------------------------------------------*/
         /** Create the master data list table window:                         */
         /**-------------------------------------------------------------------*/
         var tableWindow = new BrowserWindow({
-            title: 'Desktop Focal Point Master Data List',
+            title: 'focalPoint Master Data List',
             width: finalWidth,
             height: finalHeight,
             "skip-taskbar": true,
@@ -442,40 +554,358 @@ app.on('ready', function() {
         /** Display the data table window:                                    */
         /**-------------------------------------------------------------------*/
         tableWindow.setPosition(finalX, finalY);
-        tableWindow.loadUrl('http://' + config.host + ':' + config.port + '/table/' + name);
+        tableWindow.loadURL('http://' + appContext.serverConfig.host + ':' + appContext.serverConfig.port + '/table/' + name);
         tableWindow.show();
     });
 
     /**-----------------------------------------------------------------------*/
     /** Process the master data table window close button click event:        */
     /**-----------------------------------------------------------------------*/
-//    ipc.on('datatableClose', function(arg) {
+//    ipcMain.on('datatableClose', function(arg) {
 //        tableWindow.hide();
 //    });
 
     /**-----------------------------------------------------------------------*/
+    /** Phembot execution request from another rendered window:               */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('executePhembot', function(event, msg, phembot) {
+        mainWindow.webContents.send('executePhembot', msg, phembot);
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Open the online getting started guide:                                */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('getting-started', function() {
+        open(appContext.user.docstore);
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Hide or show the main window:                                         */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('hideMain', function() {
+        if (mainWindow === null) {
+        }
+        else if (mainWindow.isVisible()) {
+            mainWindow.hide();
+        }
+    });
+
+    ipcMain.on('showMain', function() {
+        if (mainWindow === null) {
+        }
+        else if (!mainWindow.isVisible()) {
+            mainWindow.show();
+        }
+
+        if (playerWindow === null) {
+        }
+        else if (playerWindow.isVisible()) {
+            playerWindow.hide();
+        }
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Hide or show the player window:                                       */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('hidePlayer', function() {
+        if (playerWindow === null) {
+        }
+        else if (playerWindow.isVisible()) {
+            playerWindow.hide();
+        }
+
+        if (mainWindow === null) {
+        }
+        else if (!mainWindow.isVisible()) {
+            mainWindow.show();
+        }
+    });
+
+    ipcMain.on('showPlayer', function() {
+        if (playerWindow === null) {
+        }
+        else if (!playerWindow.isVisible()) {
+            playerWindow.show();
+        }
+
+        if (mainWindow === null) {
+        }
+        else if (mainWindow.isVisible()) {
+            mainWindow.hide();
+        }
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Process the search input box enter key event:                         */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('learning', function(event, searchText) {
+        /**-------------------------------------------------------------------*/
+        /** Create the learning window:                                       */
+        /**-------------------------------------------------------------------*/
+        var learningWindow = new BrowserWindow({
+            title: 'focalPoint Learning Chunks',
+            width: finalWidth,
+            height: finalHeight,
+            "skip-taskbar": true,
+            frame: false,
+            transparent: false,
+            show: false
+        });
+
+        console.log(searchText);
+        learningWindow.setPosition(finalX, finalY);
+        learningWindow.loadURL('http://' + appContext.serverConfig.host + ':' + appContext.serverConfig.port + '/learning/' + searchText);
+        learningWindow.show();
+    });
+
+    /**-----------------------------------------------------------------------*/
     /** Process the learning window close button click event:                 */
     /**-----------------------------------------------------------------------*/
-    ipc.on('learningClose', function(arg) {
+/*
+    ipcMain.on('learningClose', function(arg) {
         learningWindow.hide();
+    });
+*/
+
+    /**-----------------------------------------------------------------------*/
+    /** Display the full form after user logged in successfully:              */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('login', function(event, user) {
+        /**-------------------------------------------------------------------*/
+        /** Load the main html page of the app:                               */
+        /**-------------------------------------------------------------------*/
+        mainWindow.loadURL('file://' + __dirname + '/main.html');
+
+        /**-------------------------------------------------------------------*/
+        /** Hide the login window and show the main window:                   */
+        /**-------------------------------------------------------------------*/
+        userWindow.hide();
+        appContext.user = user;
+        var context = JSON.stringify(appContext);
+        mainWindow.webContents.on('did-finish-load', function() {
+            mainWindow.webContents.send('appContext', context);
+            mainWindow.show();
+            userWindow.webContents.send('flush');
+        });
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Display the chat box to the administrator if the user could not login:*/
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('loginUnsuccessful', function() {
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Process the application logout event by closing all windows and       */
+    /** logging out the user and showing the login window again:              */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('logout', function() {
+        mainWindow.loadURL('http://' + appContext.serverConfig.host + ':' + appContext.serverConfig.port + '/user/logout');
+        mainWindow.hide();
+        userWindow.show();
     });
 
     /**-----------------------------------------------------------------------*/
     /** Process an OS shell command execution event:                          */
     /**-----------------------------------------------------------------------*/
-    ipc.on('osShell', function(event, arg) {
+    ipcMain.on('osShell', function(event, arg) {
         var effector = shell.exec(arg, {async:true}).output;
     });
 
     /**-----------------------------------------------------------------------*/
     /** Process the phembot list item click event:                            */
     /**-----------------------------------------------------------------------*/
-    ipc.on('phembot', function(event, ref) {
+    ipcMain.on('phembot', function(event, phembot) {
+        /**-------------------------------------------------------------------*/
+        /** Show the phembot player window and hide the main window:          */
+        /**-------------------------------------------------------------------*/
+        if (playerWindow === null) {
+            /**---------------------------------------------------------------*/
+            /** Create the player window for the application:                 */
+            /**---------------------------------------------------------------*/
+            playerWindow = new BrowserWindow({
+                title: 'focalPoint phembot player',
+                width: 227,
+                height: size.height,
+                "skip-taskbar": true,
+                "always-on-top": true,
+                frame: false,
+                transparent: false,
+                show: false
+            });
+
+            /**---------------------------------------------------------------*/
+            /** Set the position to the right of the screen:                  */
+            /**---------------------------------------------------------------*/
+            playerWindow.setPosition(size.width-227, 0);
+
+            /**---------------------------------------------------------------*/
+            /** Load the player page of the app:                              */
+            /**---------------------------------------------------------------*/
+            playerWindow.loadURL('http://' + appContext.serverConfig.host + ':' + 
+                                 appContext.serverConfig.port + '/phembot/player');
+        }
+        
+        /**------------------------------------------------------------------*/
+        /** Show the player window and send the application data and         */
+        /** selected phembot:                                                */
+        /**------------------------------------------------------------------*/
+        playerWindow.show();
+        playerWindow.webContents.send('appContext', appContext);
+        playerWindow.webContents.send('phembot', phembot);
+
+        /**-------------------------------------------------------------------*/
+        /** Hide the main window:                                             */
+        /**-------------------------------------------------------------------*/
+        if (mainWindow === null) {
+        }
+        else {
+            mainWindow.hide();
+        }
+
         /**-------------------------------------------------------------------*/
         /** Create the phembot detail window:                                 */
         /**-------------------------------------------------------------------*/
+/*
+        var phembotWidth = 500;
+        var phembotHeight = 630;
+        var phembotX = size.width - phembotWidth - 350
+        var phembotY = (size.height - phembotHeight) / 2;
         var phembotWindow = new BrowserWindow({
-            title: 'Phembot Details',
+            title: 'focalPoint phembot details',
+            width: phembotWidth,
+            height: phembotHeight,
+            "skip-taskbar": true,
+            frame: false,
+            transparent: false,
+            show: false
+        });
+
+        /**-------------------------------------------------------------------*/
+        /** Display the phembot data window:                                  */
+        /**-------------------------------------------------------------------*/
+/*
+        phembotWindow.setPosition(phembotX, phembotY);
+        phembotWindow.loadURL('http://' + appContext.serverConfig.host + ':' + 
+            appContext.serverConfig.port + '/phembot/' + type + '/id/' + id);
+        phembotWindow.show();
+        phembotWindow.webContents.on('did-finish-load', function() {
+            phembotWindow.webContents.send('appContext', appContext);
+        });
+*/
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Process the phembot list item click event:                            */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('phembots', function(event, phembots) {
+        /**-------------------------------------------------------------------*/
+        /** Show the phembot player window and hide the main window:          */
+        /**-------------------------------------------------------------------*/
+        if (playerWindow === null) {
+        }
+        else {
+            /**---------------------------------------------------------------*/
+            /** Show the player window and send the application data and      */
+            /** selected phembot:                                             */
+            /**---------------------------------------------------------------*/
+            playerWindow.show();
+            playerWindow.webContents.send('appContext', appContext);
+            playerWindow.webContents.send('phembots', phembots);
+        }
+        if (mainWindow === null) {
+        }
+        else {
+            mainWindow.hide();
+        }
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Process the application quit event by closing all windows and         */
+    /** quitting the application:                                             */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('quit', function() {
+//        calendarWindow.close();
+//        dashboardWindow.close();
+//        learningWindow.close();
+        userWindow.close();
+//        tableWindow.close();
+        app.quit();
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Player controls:                                                      */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('player-pause', function() {
+        console.log('pause');
+    });
+    ipcMain.on('player-play', function() {
+        console.log('play');
+    });
+    ipcMain.on('player-stop', function() {
+        console.log('stop');
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Refresh the main window display:                                      */
+    /**-----------------------------------------------------------------------*/
+//    ipcMain.on('refresh', function() {
+//        mainWindow.reload();
+//        mainWindow.webContents.send('appContext', appContext);
+//    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Server response to be rendered:                                       */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('renderResponse', function(event, response) {
+        var responseWidth = 700;
+        var responseHeight = 630;
+        var responseX = size.width - responseWidth - 350
+        var responseY = (size.height - responseHeight) / 2;
+        var responseWindow = new BrowserWindow({
+            width: responseWidth,
+            height: responseHeight,
+            "skip-taskbar": true,
+            frame: false,
+            transparent: false,
+            show: false
+        });
+
+        responseWindow.setPosition(responseX, responseY);
+        responseWindow.loadURL('http://' + appContext.serverConfig.host + ':' + 
+            appContext.serverConfig.port + '/player');
+        responseWindow.show();
+        responseWindow.webContents.on('did-finish-load', function() {
+            responseWindow.webContents.send('responseData', response.body, appContext);
+        });
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Main window dyno animations:                                          */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('showAnimation', function(event, msg) {
+        mainWindow.webContents.send('showAnimation', msg);
+    });
+    ipcMain.on('stopAnimation', function(event, msg) {
+        mainWindow.webContents.send('stopAnimation', msg);
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** Open the online user manual:                                          */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('user-manual', function() {
+        open(appContext.user.docstore);
+    });
+
+    /**-----------------------------------------------------------------------*/
+    /** User preferences page request:                                        */
+    /**-----------------------------------------------------------------------*/
+    ipcMain.on('userPreferences', function(event, arg) {
+        /**-------------------------------------------------------------------*/
+        /** Create a new utility window:                                      */
+        /**-------------------------------------------------------------------*/
+        var utilWindow = new BrowserWindow({
+            title: 'User Preferences',
             width: finalWidth,
             height: finalHeight,
             "skip-taskbar": true,
@@ -485,100 +915,61 @@ app.on('ready', function() {
         });
 
         /**-------------------------------------------------------------------*/
-        /** Get the phembot type and id so the data can be queried from the   */
-        /** server:                                                           */
+        /** Display the preferences window:                                   */
         /**-------------------------------------------------------------------*/
-        var delimChar = ref.indexOf("_");
-        var type = ref.substring(0, delimChar)
-        var id = ref.substring(delimChar + 1);
-
-        /**-------------------------------------------------------------------*/
-        /** Display the phembot data window:                                  */
-        /**-------------------------------------------------------------------*/
-        phembotWindow.setPosition(finalX, finalY);
-        phembotWindow.loadUrl('http://' + config.host + ':' + config.port + '/phembot/' + type + '/id/' + id);
-        phembotWindow.show();
-    });
-
-    /**-----------------------------------------------------------------------*/
-    /** Process an OS shell command execution event:                          */
-    /**-----------------------------------------------------------------------*/
-    ipc.on('prefs', function(event, arg) {
-        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/preferences');
+        utilWindow.setPosition(finalX, finalY);
+        utilWindow.loadURL('http://' + appContext.serverConfig.host + ':' + appContext.serverConfig.port + '/user/preferences');
         utilWindow.show();
     });
 
     /**-----------------------------------------------------------------------*/
-    /** Refresh the main window display:                                      */
+    /** User profile page request:                                            */
     /**-----------------------------------------------------------------------*/
-    ipc.on('refresh', function() {
-        mainWindow.reload();
-    });
-
-    /**-----------------------------------------------------------------------*/
-    /** Display the full form after user logged in successfully:              */
-    /**-----------------------------------------------------------------------*/
-    ipc.on('userLoggedIn', function() {
-        /**-----------------------------------------------------------------------*/
-        /** Hide the login window and show the main window:                       */
-        /**-----------------------------------------------------------------------*/
-        userWindow.hide();
-        mainWindow.show();
-    });
-
-    /**-----------------------------------------------------------------------*/
-    /** Display the chat box to the administrator if the user could not login:*/
-    /**-----------------------------------------------------------------------*/
-    ipc.on('userLoginUnsuccessful', function() {
-    });
-
-    /**-----------------------------------------------------------------------*/
-    /** Display the user profile form:                                        */
-    /**-----------------------------------------------------------------------*/
-    ipc.on('userProfile', function(event, arg) {
-        utilWindow.setBounds({
-            x: size.width-750,
-            y: size.height-540,
-            width: 400,
-            height: 340
+    ipcMain.on('userProfile', function(event, arg) {
+        /**-------------------------------------------------------------------*/
+        /** Create a new utility window:                                      */
+        /**-------------------------------------------------------------------*/
+        var utilWindow = new BrowserWindow({
+            title: 'User Preferences',
+            width: finalWidth,
+            height: finalHeight,
+            "skip-taskbar": true,
+            frame: false,
+            transparent: false,
+            show: false
         });
-        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/user/profile');
+
+        /**-------------------------------------------------------------------*/
+        /** Display the user profile form:                                    */
+        /**-------------------------------------------------------------------*/
+        utilWindow.setPosition(finalX, finalY);
+        utilWindow.loadURL('http://' + appContext.serverConfig.host + ':' + appContext.serverConfig.port + '/user/profile');
         utilWindow.show();
     });
 
     /**-----------------------------------------------------------------------*/
-    /** Display the user registration form:                                   */
+    /** User registration page request:                                       */
     /**-----------------------------------------------------------------------*/
-    ipc.on('userRegister', function(event, arg) {
-        utilWindow.setBounds({
-            x: size.width-750,
-            y: size.height-540,
-            width: 400,
-            height: 340
+    ipcMain.on('userRegister', function(event, arg) {
+        /**-------------------------------------------------------------------*/
+        /** Create a new utility window:                                      */
+        /**-------------------------------------------------------------------*/
+        var utilWindow = new BrowserWindow({
+            title: 'User Preferences',
+            width: finalWidth,
+            height: finalHeight,
+            "skip-taskbar": true,
+            frame: false,
+            transparent: false,
+            show: false
         });
-        utilWindow.loadUrl('http://' + config.host + ':' + config.port + '/user/register');
-        utilWindow.show();
-    });
 
-    /**-----------------------------------------------------------------------*/
-    /** Menu bar click event:                                                 */
-    /**-----------------------------------------------------------------------*/
-    mb.on('click', function () {
-console.log('mb clicked');
-        if (mainWindow.isVisible()) {
-console.log('main window visible');
-            mainWindow.hide();
-        }
-        else {
-console.log('main window invisible');
-            mainWindow.setBounds({
-                x: size.width-350,
-                y: 0,
-                width: 350,
-                height: size.height
-            });
-            mainWindow.show();
-        }
+        /**-------------------------------------------------------------------*/
+        /** Display the user registration window:                             */
+        /**-------------------------------------------------------------------*/
+        utilWindow.setPosition(finalX, finalY);
+        utilWindow.loadURL('http://' + appContext.serverConfig.host + ':' + appContext.serverConfig.port + '/user/register');
+        utilWindow.show();
     });
 
     /**-----------------------------------------------------------------------*/
@@ -588,35 +979,3 @@ console.log('main window invisible');
 //        mainWindow.webContents.send('render-finished');
 //    });
 });
-
-/******************************************************************************/
-/**                                                                           */
-/** MENUBAR   MENUBAR   MENUBAR   MENUBAR   MENUBAR   MENUBAR   MENUBAR   MEN */
-/**                                                                           */
-/** Native OS menu bar shortcut icon.                                         */
-/******************************************************************************/
-
-/**---------------------------------------------------------------------------*/
-/** Add an entry in the menu bar as an application short cut:                 */
-/**---------------------------------------------------------------------------*/
-var mb = menubar({
-    width: 73,
-    height: 73,
-    index: 'file://' + __dirname + '/main.html',
-    icon: __dirname + '/images/IconTemplate.png'
-});
-
-/*
-mb.on('click', function () {
-    console.log('mb clicked');
-});
-*/
-
-
-/*
-mb.on('ready', function ready () {
-    mb.on('click', function () {
-        console.log('mb clicked');
-    });
-});
-*/

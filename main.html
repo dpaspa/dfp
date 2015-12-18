@@ -1,305 +1,317 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ipoogi desktop focal point</title>
-  <meta charset="utf-8">
-  <link rel="stylesheet" href="main.css">
-  <link rel="stylesheet" href="theme-active.css">
+    <title>ipoogi desktop focalPoint</title>
+    <meta charset="utf-8">
+    <link rel='stylesheet' href='lib/materialize.min.css'>
+    <link rel="stylesheet" href="lib/materialIcons.css">
+    <link rel="stylesheet" href="lib/hint.min.css">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="theme-active.css">
+    <script>
+        var path = require('path');
+        window.$ = window.jQuery = require('jquery');
+        var Hammer = require(path.resolve('node_modules/jquery/dist/hammer.min.js'));
+    </script>
+    <script src='lib/materialize.min.js'></script>
 </head>
 <body>
-  <div class="app-container" id="site-wrap">
-    <div class="menu-top">
-      <div class="menu-top-left">
-        <div class="menu-item" id="plan-label">
-          <a href="#" class="menu-btn">Plan<i>Quality Assurance Plan, i.e. the list of Quality Controls</i></a>
-        </div>
-        <div class="menu-item activeLabel" id="do-label">
-          <a href="#" class="menu-btn">Do</a>
-        </div>
-        <div class="menu-item" id="check-label">
-          <a href="#" class="menu-btn">Check</a>
-        </div>
-        <div class="menu-item" id="act-label">
-          <a href="#" class="menu-btn">Act</a>
-        </div>
-      </div>
-      <div class="menu-top-right">
-        <div class="menu-item" id="list-label">
-          <a href="#" class="menu-btn">List</a>
-        </div>
-      </div>
-    </div>
-  <div id="content-no-scroll">
-    <div id="pane-title">
-        <h2>Upcoming tasks</h2>
-    </div>
-    <div class="content-main" id="content-main-panel">
-      <div id="plan-content">
-        <div id="result-plan">
-          <div class="loader">Loading...
-          </div>
-        </div>
-      </div>
+    <div class="app-container" id="site-wrap">
+        <input class="filter-master" id="filter-key" placeholder="filter...">
+        <div id="filter-clear" class="hint--left" data-hint="Clear filter"></div>
 
-      <div id="do-content">
-        <div id="result-do">
-          <div class="loader">Loading...
-          </div>
+        <div class="menu-top-left">
+            <div class="menu-item" id="plan-label">Plan</div>
+            <div class="menu-item activeLabel" id="do-label">Do</div>
+            <div class="menu-item" id="check-label">Check</div>
+            <div class="menu-item" id="act-label">Act</div>
         </div>
-      </div>
 
-      <div id="check-content">
-        <div id="result-check">
-          <div class="loader">Loading...
-          </div>
+        <div class="menu-top-right">
+            <select class="scope-item" id="scope-label" name="scope">
+              <option value="All" selected="selected">All</option>
+              <option value="Role">Roles</option>
+              <option value="Mine">Mine</option>
+            </select>
+            <div class="menu-item" id="list-label">List</div>
         </div>
-      </div>
+        <div class="menu-hamburger">
+            <button class="c-hamburger c-hamburger--htx" id="hamburger">
+                <span>toggle menu</span>
+            </button>
+        </div>
 
-      <div class="content-half-top" id="act-ofi-content">
-        <div id="result-ofi">
-          <div class="loader">Loading...
-          </div>
-        </div>
-      </div>
-      <div class="content-separator" id="act-separator">
-        <div class="content-separator-pending" id="act-separator-pending">
-          <p><a href="" target="_blank">x more pending &hellip;</a></p>
-        </div>
-        <div class="content-separator-title" id="act-separator-title">
-        </div>
-      </div>
-      <div class="content-half-bottom" id="act-cc-content">
-        <div id="result-cc">
-          <div class="loader">Loading...
-          </div>
-        </div>
-      </div>
-
-      <div class="content-half-top" id="list-working-content">
-        <div id="result-list-working">
-          <div class="loader">Loading...
-          </div>
-        </div>
-      </div>
-      <div class="content-separator" id="list-separator">
-        <div class="content-separator-pending" id="list-separator-pending">
-          <p><a href="" target="_blank">x more pending &hellip;</a></p>
-        </div>
-        <div class="content-separator-title" id="list-separator-title">
-        </div>
-      </div>
-      <div class="content-half-bottom" id="list-master-content">
-        <div id="result-list-master">
-          <div class="loader">Loading...
-          </div>
-        </div>
-      </div>
-    </div>
-    <div id="pending">
-        <p><a href="" target="_blank">x more pending &hellip;</a></p>
-    </div>
-  </div>
-
-    <div class="search" id="searcher">
-      <form>
-        <input class="search-entry" id="search-key" type="text" required>
-      </form>
-    </div>
-
-    <div class="flip-container">
-        <div class="flipper" id="flip-menu">
-            <div class="front" id="front-face">
-                <!-- front content -->
-                <div class="content-dynamic">
-                  <div id="dyno">
-                      <!-- canvas id="myCanvas" width="350" height="240"></canvas> -->
-                  </div>
-                  <div class="content-chat" id="chat">
-                    <div class="chat-options">
-                        <button class="chatInternal" id="chat-internal">Internal</button>
-                        <button class="chatExternal" id="chat-external">External</button>
-                        <button class="chatSupport" id="chat-support">Support</button>
-                        <button class="chatClose" id="chat-close">Close</button>
-                    </div>
-                    <div class="chat-select">
-                        <div class="chatInternal" id="chat-internal-select"></div>
-                        <div class="chatExternal" id="chat-external-select"></div>
-                        <div class="chatSupport" id="chat-support-select"></div>
-                        <div class="chatClose" id="chat-close-select"></div>
-                    </div>
-                    <div class="chat-messages chatInternal" id="chat-background">
-                      <ul id="messages"></ul>
-                    </div>
-                    <form id="chat-form" action="">
-                      <input id="m" autocomplete="off" /><button id="m-send">Send</button>
-                    </form>
-                  </div>
-                  <div class="learn-panel" id="learn">
-                    <div id="learn-title">
-                    </div>
-                    <div id="learn-detail">
-                    </div>
-                    <div id="learn-link"><p style="text-align: right" id="learn-more"><a href="" target="_blank">Learn more&hellip;</a></p>
-                    </div>
-                  </div>
+        <div id="wrapper-id" class="wrapper">
+            <div class="main-menu" id="icon-menu">
+                <div class="menu-icon hint--left" id="hide-icon" data-hint="Hide window">
+                    <img class="menu-img" src="./images/hide.png">
+                </div>
+                <div class="menu-icon hint--left" id="search-icon" data-hint="Search">
+                    <img class="menu-img" src="./images/search4.png">
+                </div>
+                <div class="menu-icon hint--left" id="cal-icon" data-hint="Calendar">
+                    <img class="menu-img" src="./images/calendar2.png">
+                </div>
+                <div class="menu-icon hint--left" id="dash-icon" data-hint="Dashboard">
+                    <img class="menu-img" src="./images/chart2.png">
+                </div>
+                <div class="menu-icon hint--left" id="learn-icon" data-hint="Learning">
+                    <img class="menu-img" src="./images/learn4.png">
+                </div>
+                <div class="menu-icon hint--left" id="chat-icon" data-hint="Chat">
+                    <img class="menu-img" src="./images/chat2.png">
+                </div>
+                <div class="menu-icon hint--left" id="cart-icon" data-hint="Website">
+                    <img class="menu-img" src="./images/cart2.png">
+                </div>
+                <div class="menu-icon hint--left" id="user-icon" data-hint="User profile">
+                    <img class="menu-img" src="./images/user2.png">
+                </div>
+                <div class="menu-icon hint--left" id="prefs-icon" data-hint="Preferences">
+                    <img class="menu-img" src="./images/prefs5.png">
+                </div>
+                <div class="menu-icon hint--left" id="quit-icon-menu" data-hint="Leave application">
+                    <img class="menu-img" src="./images/leave.png">
                 </div>
             </div>
-            <div class="back" id="back-face">
-                <div class="main-menu">
-                <!-- back content -->
-                    <div class="menu-icon" id="chat-icon">
-                      <a href="#" class="menu-btn"><img src="./images/chat.png"></a>
+            <div id="slide">
+                <input class="search-box" id="search-key" placeholder="search...">
+                <div id="getting-started">
+                    <img class="menu-img" src="./images/starting.png">
+                    <p class="started">quick start guide</p>
+                </div>
+                <div id="user-manual">
+                    <img class="menu-img" src="./images/manual.png">
+                    <p class="manual">online user manual</p>
+                </div>
+            </div>
+            <div id="exit-menu">
+                <div class="menu-icon hint--left" id="logout-icon" data-hint="Log out">
+                    <img class="menu-img" src="./images/logout.png">
+                </div>
+                <div class="menu-icon hint--left" id="quit-icon" data-hint="Quit">
+                    <img class="menu-img" src="./images/quit.png">
+                </div>
+            </div>
+        </div>
+
+        <div id="content-no-scroll">
+            <div class="content-main" id="content-main-panel">
+                <div id="result-plan">
+                    <div class="loader">Loading Plans...
                     </div>
-                    <div class="menu-icon" id="dash-icon">
-                      <a href="#" class="menu-btn"><img src="./images/chart.png"></a>
+                </div>
+                <div id="result-do">
+                    <div class="loader">Loading Dos...
                     </div>
-                    <div class="menu-icon" id="cal-icon">
-                      <a href="#" class="menu-btn"><img src="./images/calendar.png"></a>
+                </div>
+                <div id="result-check">
+                    <div class="loader">Loading Checks...
                     </div>
-                    <div class="menu-icon" id="cart-icon">
-                      <a href="#" class="menu-btn"><img src="./images/cart.png"></a>
+                </div>
+                <div id="result-act">
+                    <div class="loader">Loading Acts...
                     </div>
-                    <div class="menu-icon" id="learn-icon">
-                      <a href="#" class="menu-btn"><img src="./images/learn.png"></a>
-                    </div>
-                    <div class="menu-icon" id="user-icon">
-                      <a href="#" class="menu-btn"><img src="./images/user.png"></a>
-                    </div>
-                    <div class="menu-icon" id="prefs-icon">
-                      <a href="#" class="menu-btn"><img src="./images/prefs3.png"></a>
-                    </div>
-                    <div class="menu-icon" id="quit-icon">
-                      <a href="#" class="menu-btn"><img src="./images/exit.png"></a>
+                </div>
+                <div id="result-list">
+                    <div class="loader">Loading...
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="menu-bottom">
-      <div class="menu-bottom-left">
-        <div class="menu-item" id="chat-label">
-          <a href="#" class="menu-btn">Chat</a>
-        </div>
-        <div class="menu-item" id="learn-label">
-          <a href="#" class="menu-btn">Learn</a>
-        </div>
-        <div class="menu-item" id="cal-label">
-          <a href="#" class="menu-btn">Calendar</a>
-        </div>
-        <div class="menu-item" id="dash-label">
-          <a href="#" class="menu-btn">Dashboard</a>
-        </div>
-      </div>
-      <div class="menu-bottom-right">
-        <div class="menu-item" id="menu-label">
-          <a id="nav-toggle" href="#">
-            <div class="hamburger">
-              <span></span>
+
+        <div class="content-dynamic">
+            <div id="dyno-msg"></div>
+            <div id="dyno" class="dynoInactive">
+                <video id="dyno-video" src="" autoplay controls preload>
+                </video>
             </div>
-          </a>
-          <!--a href="#" class="menu-btn"><img width="20px" height="20px" src="./images/menu-bar.png"></a-->
         </div>
-      </div>
-    </div>
-  </div>
+    </div><!--app-container-->
 
-  <script id="template-cc" type="text/x-handlebars-template">
-    <ul class="list-task">
-      {{#cc}}
-      <li class="item-container">
-        <p class="info"><a href="" target="listCC_{{_id}}">{{title}}</a></p>
-	    <p class="desc">by <strong>{{type}}</strong> on <strong>{{status}}</strong></p>
-	    <p class="location">{{ref}}</p>
-        <div class="progress"></div>
-      </li>
-      {{/cc}}
-    </ul>
-  </script>
+    <script id="template-act" type="text/x-handlebars-template">
+        <div id="act-parent">
+            <div id="act-title">
+                <h2>Improvements pending implementation</h2>
+            </div>
+            <input id="act-filter-value" class="act-filter filter-slave" placeholder="act filter...">
+            <div id="act-content">
+                <ul class="act-list list-task">
+                {{#act}}
+                    <li id="{{_id}}" class="item-container">
+                        <div id="{{_id}}_duration" class="duration hint--right" 
+                             data-hint="planned {{task.duration}} days" 
+                             style="{{styleDuration task.duration}}">
+                        </div>
+                        <div class="textblock">
+                            <p class="info hint--bottom" data-hint="{{task.frequency}}"><a href="" target="listAct_{{_id}}">{{title}}</a></p>
+                            <p class="location">Type {{type}} with status {{status}}</p>
+                            <p class="desc">By <strong>{{task.rolePrimary}}</strong> on <strong>{{task.nextDue}}</strong>, elapsed {{task.elapsed}}, remaining {{task.remaining}}</p>
+                        </div>
+                        <div id="{{_id}}_elapsed" class="elapsed hint--top" data-hint="{{task.elapsed}} days" 
+                             style="{{styleElapsed task.duration task.elapsed task.remaining}};">
+                        </div>
+                        <div id="{{_id}}_remaining" class="remaining hint--top" data-hint="{{task.remaining}} days" 
+                             style="{{styleRemaining task.duration task.elapsed task.remaining}};">
+                        </div>
+                    </li>
+                {{/act}}
+                </ul>
+            </div>
+            <div id="act-pending">
+                <p><a href="" target="_blank">x more Act items pending &hellip;</a></p>
+            </div>
+        </div>
+    </script>
 
-  <script id="template-check" type="text/x-handlebars-template">
-    <ul class="list-task">
-      {{#check}}
-      <li class="item-container">
-        <p class="info"><a href="" target="listCheck_{{_id}}">{{title}}</a></p>
-	    <p class="desc">by <strong>{{type}}</strong> on <strong>{{status}}</strong></p>
-	    <p class="location">{{ref}}</p>
-        <div class="progress"></div>
-      </li>
-      {{/check}}
-    </ul>
-  </script>
+    <script id="template-check" type="text/x-handlebars-template">
+        <div id="check-parent">
+            <div id="check-title">
+                <h2>Actions waiting to be checked</h2>
+            </div>
+            <input id="check-filter-value" class="check-filter filter-slave" placeholder="check filter...">
+            <div id="check-content">
+                <ul class="check-list list-task">
+                {{#check}}
+                    <li id="{{_id}}" class="item-container">
+                        <div id="{{_id}}_duration" class="duration hint--right" 
+                             data-hint="planned {{task.duration}} days" 
+                             style="{{styleDuration task.duration}}">
+                        </div>
+                        <div class="textblock">
+                            <p class="info hint--bottom" data-hint="{{task.frequency}}"><a href="" target="listCheck_{{_id}}">{{title}}</a></p>
+                            <p class="location">Type {{type}} with status {{status}}</p>
+                            <p class="desc">By <strong>{{task.rolePrimary}}</strong> on <strong>{{task.nextDue}}</strong>, elapsed {{task.elapsed}}, remaining {{task.remaining}}</p>
+                        </div>
+                        <div id="{{_id}}_elapsed" class="elapsed hint--top" data-hint="{{task.elapsed}} days" 
+                             style="{{styleElapsed task.duration task.elapsed task.remaining}};">
+                        </div>
+                        <div id="{{_id}}_remaining" class="remaining hint--top" data-hint="{{task.remaining}} days" 
+                             style="{{styleRemaining task.duration task.elapsed task.remaining}};">
+                        </div>
+                    </li>
+                {{/check}}
+                </ul>
+            </div>
+            <div id="check-pending">
+                <p><a href="" target="_blank">x more Check items pending &hellip;</a></p>
+            </div>
+        </div>
+    </script>
 
-  <script id="template-do" type="text/x-handlebars-template">
-    <ul class="list-task">
-      {{#do}}
-      <li class="item-container">
-        <p class="info"><a href="" target="listDo_{{_id}}">{{title}}<i>hello</i></a></p>
-        <p class="location">Type {{type}} with status {{status}}</p>
-	    <p class="desc">By <strong>{{task.rolePrimary}}</strong> on <strong>{{task.nextDue}}</strong></p>
-        <div class="progress" percent="{{progress}}"></div>
-      </li>
-      {{/do}}
-    </ul>
-  </script>
+    <script id="template-do" type="text/x-handlebars-template">
+        <div id="do-parent">
+            <div id="do-title">
+                <h2>Tasks due</h2>
+            </div>
+            <input id="do-filter-value" class="do-filter filter-slave" placeholder="do filter...">
+            <div id="do-content">
+                <ul class="do-list list-task">
+                {{#do}}
+                    <li id="{{_id}}" class="item-container">
+                        <div class="textblock">
+                            <p class="info phembot-text hint--bottom" data-hint="{{task.frequency}}"><a href="" target="listDo_{{_id}}">{{title}}</a></p>
+                            <p class="location">Type {{type}} with status {{status}}</p>
+                            <p class="desc">By <strong>{{task.rolePrimary}}</strong> on <strong>{{task.nextDue}}</strong>, elapsed {{task.elapsed}}, remaining {{task.remaining}}</p>
+                            {{#if image}}
+                                <div class="card phembot-card z-depth-3">
+                                    <div class="card-image waves-effect waves-block waves-light">
+                                        <img class="activator phembot-img" src="{{user.pathRemote}}/{{user.pathRemotePhembots}}/images/{{image}}">
+                                    </div>
+                                    <div class="card-content">
+                                        <span class="card-title activator grey-text text-darken-4">{{title}}<i class="material-icons right">more_vert</i></span>
+                                    </div>
+                                    <div class="card-action">
+                                        <a class="phembot-text" href="{{vendorDocs}}">Vendor Manual</a>
+                                    </div>
+                                    <div class="card-reveal">
+                                        <span class="card-title grey-text text-darken-4">{{title}}<i class="material-icons right">close</i></span>
+                                        <br><p class="phembot-text">{{description}}</p>
+                                    </div>
+                                </div>
+                            {{/if}}
+                        </div>
+                        <div id="{{_id}}_duration" class="duration hint--right" 
+                             data-hint="planned {{task.duration}} days" 
+                             style="{{styleDuration task.duration}}">
+                        </div>
+                        <div id="{{_id}}_elapsed" class="elapsed hint--top" data-hint="{{task.elapsed}} days" 
+                             style="{{styleElapsed task.duration task.elapsed task.remaining}};">
+                        </div>
+                        <div id="{{_id}}_remaining" class="remaining hint--top" data-hint="{{task.remaining}} days" 
+                             style="{{styleRemaining task.duration task.elapsed task.remaining}};">
+                        </div>
+                    </li>
+                {{/do}}
+                </ul>
+            </div>
+            <div id="do-pending">
+                <p><a href="" target="_blank">x more Do items pending &hellip;</a></p>
+            </div>
+        </div>
+    </script>
 
-  <script id="template-learn" type="text/x-handlebars-template">
-    <ul class="list">
-      {{#learn}}
-      <li>
-        <p class="info"><a href="" target="learn_{{_id}}">{{term}}</a></p>
-	    <p class="desc">{{summary}}</p>
-      </li>
-      {{/learn}}
-    </ul>
-  </script>
+    <script id="template-list" type="text/x-handlebars-template">
+        <div id="list-parent">
+            <div id="list-title">
+                <div id="list-img-master" class="list-img-master"></div>
+                <div id="text-img-master"><h2>aster and</h2></div>
+                <div id="list-img-working" class="list-img-working"></div>
+                <div id="text-img-working"><h2>orking Lists</h2></div>
+            </div>
+            <input id="list-filter-value" class="list-filter filter-slave" placeholder="list filter...">
+            <div id="list-content">
+                <ul class="list-list list-item">
+                {{#list}}
+                    <li id="{{_id}}" class="item-container">
+                        <div class="listblock">
+                            <p class="info"><a href="" target="list_{{name}}">{{title}}</a></p>
+                            <p class="desc">{{title}}</p>
+                        </div>
+                        {{#if master}}
+                            <div class="img-master"></div>
+                        {{else}}
+                            <div class="img-working"></div>
+                        {{/if}}
+                    </li>
+                {{/list}}
+            </ul>
+            </div>
+            <div id="list-pending">
+                <p><a href="" target="_blank">x more List items pending &hellip;</a></p>
+            </div>
+        </div>
+    </script>
 
-  <script id="template-list-master" type="text/x-handlebars-template">
-    <ul class="list">
-      {{#list-master}}
-      <li>
-        <p class="info"><a href="" target="list_{{name}}">{{title}}</a></p>
-	    <p class="desc">{{title}}</p>
-      </li>
-      {{/list-master}}
-    </ul>
-  </script>
+    <script id="template-plan" type="text/x-handlebars-template">
+        <div id="plan-parent">
+            <div id="plan-title">
+                <h2>Quality Assurance Plan</h2>
+            </div>
+            <input id="plan-filter-value" class="plan-filter filter-slave" placeholder="plan filter...">
+            <div id="plan-content">
+                <ul class="plan-list list-item">
+                {{#plan}}
+                    <li id="{{_id}}" class="item-container">
+                        <div id="{{_id}}_duration" class="duration hint--right" 
+                             data-hint="planned {{task.duration}} days" 
+                             style="{{styleDuration task.duration}}">
+                        </div>
+                        <div class="textblock">
+                            <p class="info hint--bottom" data-hint="{{task.frequency}}"><a href="" target="listPlan_{{_id}}">{{title}}</a></p>
+                            <p class="desc">{{name}}</p>
+                        </div>
+                    </li>
+                {{/plan}}
+                </ul>
+            </div>
+            <div id="plan-pending">
+                <p><a href="" target="_blank">x more Plan items pending &hellip;</a></p>
+            </div>
+        </div>
+    </script>
 
-  <script id="template-list-working" type="text/x-handlebars-template">
-    <ul class="list">
-      {{#list-working}}
-      <li>
-        <p class="info"><a href="" target="list_{{name}}">{{title}}</a></p>
-	    <p class="desc">{{title}}</p>
-      </li>
-      {{/list-working}}
-    </ul>
-  </script>
-
-  <script id="template-ofi" type="text/x-handlebars-template">
-    <ul class="list-task">
-      {{#ofi}}
-      <li class="item-container">
-        <p class="info"><a href="" target="listOFI_{{_id}}">{{title}}</a></p>
-	    <p class="desc">by <strong>{{type}}</strong> on <strong>{{status}}</strong></p>
-	    <p class="location">{{ref}}</p>
-        <div class="progress"></div>
-      </li>
-      {{/ofi}}
-    </ul>
-  </script>
-
-  <script id="template-plan" type="text/x-handlebars-template">
-    <ul class="list">
-      {{#plan}}
-      <li>
-        <p class="info"><a href="" target="listPlan_{{_id}}">{{title}}</a></p>
-	    <p class="desc">{{name}}</>
-      </li>
-      {{/plan}}
-    </ul>
-  </script>
-
-  <script src="lib/handlebars.js"></script>
-  <script>require("./main.js")</script>
+    <script src="lib/handlebars.js"></script>
+    <script src="./main.js"></script>
 </body>
 </html>
